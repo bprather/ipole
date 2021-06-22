@@ -246,13 +246,14 @@ void jar_calc_dist(int dist, double X[NDIM], double Kcon[NDIM],
       *jV = j_nu_fit(nu, B, Ne, theta, fit, paramsM.STOKES_V, Thetae, powerlaw_p, gamma_min, gamma_max, gamma_cut, kappa, kappa_width);
     }
     // Check basic relationships
+    // Be extra nasty about negative emissivity
     if (*jI < 0) {
       fprintf(stderr, "Negative total emissivity! Exiting!\n");
       exit(-1);
     }
-    if (*jI * *jI < *jQ * *jQ + *jU * *jU + *jV * *jV) {
+    double jP = sqrt(*jQ * *jQ + *jU * *jU + *jV * *jV);
+    if (*jI < jP/max_pol_frac_e) {
       // Transport does not like 100% polarization...
-      double jP = sqrt(*jQ * *jQ + *jU * *jU + *jV * *jV);
       double pol_frac_e = *jI / jP * max_pol_frac_e;
       *jQ *= pol_frac_e;
       *jU *= pol_frac_e;
@@ -289,9 +290,9 @@ void jar_calc_dist(int dist, double X[NDIM], double Kcon[NDIM],
         fprintf(stderr, "Negative total absorptivity! Exiting!\n");
         exit(-1);
       }
-      if (*aI * *aI < *aQ * *aQ + *aU * *aU + *aV * *aV) {
+      double aP = sqrt(*aQ * *aQ + *aU * *aU + *aV * *aV);
+      if (*aI < aP/max_pol_frac_a) {
         // Transport does not like 100% polarization...
-        double aP = sqrt(*aQ * *aQ + *aU * *aU + *aV * *aV);
         double pol_frac_a = *aI / aP * max_pol_frac_a;
         *aQ *= pol_frac_a;
         *aU *= pol_frac_a;
@@ -327,7 +328,7 @@ void jar_calc_dist(int dist, double X[NDIM], double Kcon[NDIM],
   *rQ *= nu;
   *rU *= nu;
   *rV *= nu;
-  
+
   // *Then* handle field lines, to leave rV intact
   if (theta <= 0 || theta >= M_PI) {
     *rQ = 0;
