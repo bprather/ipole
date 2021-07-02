@@ -423,7 +423,7 @@ int main(int argc, char *argv[])
               
               // polarized transport
               if (! params.only_unpolarized) {
-                evolve_N(Xi, Kconi, Xhalf, Kconhalf, Xf, Kconf, dtraj[stepidx].dl, dimage[pxidx].N_coord, &(dimage[pxidx].tauF), 0, &params);
+                evolve_N(Xi, Kconi, Xhalf, Kconhalf, Xf, Kconf, dtraj[stepidx].dl, dimage[pxidx].N_coord, &(dimage[pxidx].tauF), 0, &params, 0);
                 if (isnan(creal(dimage[pxidx].N_coord[0][0]))) {
                   exit(-2);
                 }
@@ -832,7 +832,7 @@ void get_pixel(size_t i, size_t j, int nx, int ny, double Xcam[NDIM], Params par
   }
 
   // Integrate emission all the way forward along trajectory
-  int oddflag = integrate_emission(traj, nstep, Intensity, Tau, tauF, N_coord, &params);
+  int oddflag = integrate_emission(traj, nstep, Intensity, Tau, tauF, N_coord, &params, 0);
 
   if (!only_intensity) {
     project_N(X, Kcon, N_coord, Is, Qs, Us, Vs, params.rotcam);

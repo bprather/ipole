@@ -37,9 +37,9 @@ void print_matrix_c(char *name, double complex g[NDIM][NDIM])
           creal(g[2][0]), cimag(g[2][0]), creal(g[2][1]), cimag(g[2][1]), creal(g[2][2]), cimag(g[2][2]), creal(g[2][3]), cimag(g[2][3]),
           creal(g[3][0]), cimag(g[3][0]), creal(g[3][1]), cimag(g[3][1]), creal(g[3][2]), cimag(g[3][2]), creal(g[3][3]), cimag(g[3][3])
           );
-  MUNULOOP
-    if ( isnan(creal(g[mu][nu])) || isnan(cimag(g[mu][nu])) )
-      exit(-1);
+  //MUNULOOP
+  //  if ( isnan(creal(g[mu][nu])) || isnan(cimag(g[mu][nu])) )
+  //    exit(-1);
 }
 void print_vector(char *name, double v[NDIM])
 {

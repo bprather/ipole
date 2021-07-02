@@ -287,7 +287,7 @@ void dump_var_along(int i, int j, int nstep, struct of_traj *traj, int nx, int n
 
   int nprims = 8;
   // Admittedly confusing nomenclature:
-  // nstep = # of final step
+  // nstep = # of the final step
   // nsteps = # steps = nstep + 1
   int nsteps = nstep + 1;
   double *prims = calloc(nprims*nsteps, sizeof(double));
@@ -297,6 +297,10 @@ void dump_var_along(int i, int j, int nstep, struct of_traj *traj, int nx, int n
   double *thetae = calloc(nsteps, sizeof(double));
   double *nu = calloc(nsteps, sizeof(double));
   double *mu = calloc(nsteps, sizeof(double));
+
+  // Measure how much we messed up the tetrad
+  double *econ0_badness = calloc(nstep, sizeof(double));
+  double *econ3_badness = calloc(nstep, sizeof(double));
 
   double *dl = calloc(nsteps, sizeof(double));
   double *X = calloc(NDIM*nsteps, sizeof(double));
@@ -333,8 +337,11 @@ void dump_var_along(int i, int j, int nstep, struct of_traj *traj, int nx, int n
   double Ecovt[NDIM][NDIM], Econt[NDIM][NDIM];
 
   // Record Stokes parameters
-  double *stokes = calloc(NDIM*nsteps,sizeof(double));
-  double *stokes_coordinate = calloc(NDIM*nsteps,sizeof(double));
+  double *stokes1 = calloc(NDIM*nsteps,sizeof(double));
+  double *stokes2 = calloc(NDIM*nsteps,sizeof(double));
+  double *stokes_coordinate1 = calloc(NDIM*nsteps,sizeof(double));
+  double *stokes_coordinate2 = calloc(NDIM*nsteps,sizeof(double));
+  double *stokes_camera = calloc(NDIM*nsteps,sizeof(double));
   double *ntetrad = calloc(NDIM*NDIM*nsteps,sizeof(double));
   double *ncoord = calloc(NDIM*NDIM*nsteps,sizeof(double));
   double *econ = calloc(NDIM*NDIM*nsteps,sizeof(double));
@@ -380,7 +387,14 @@ void dump_var_along(int i, int j, int nstep, struct of_traj *traj, int nx, int n
     //make the plasma tetrad to project the coherency tensor
     make_plasma_tetrad(Ucont,traj[i].Kcon,Bcont,Gcov,Econt,Ecovt);
 
-    
+    // Normalize ucon and Kcon, then compare the results to Econ0 and Econ3
+    normalize(Ucont, Gcov);
+    double Kcont[NDIM];
+    MULOOP Kcont[mu] = traj[i].Kcon[mu];
+    normalize(Kcont, Gcov);
+    econ0_badness[i] = abs(1 - (Ucont[0]*Ecovt[0][0] + Ucont[1]*Ecovt[0][1] + Ucont[2]*Ecovt[0][2] + Ucont[3]*Ecovt[0][3]));
+    econ3_badness[i] = abs(1 - (Kcont[0]*Ecovt[3][0] + Kcont[1]*Ecovt[3][1] + Kcont[2]*Ecovt[3][2] + Kcont[3]*Ecovt[3][3]));
+
     //parallel transport E2 basis vector by dl to second order accuracy
     parallel_transport_vector(traj[i].X,traj[i].X,traj[i].Xhalf,traj[i].Kcon,traj[i].Kcon,traj[i].Kconhalf,Econt[2],Econt[2],e2Mid,traj[i].dl);
     parallel_transport_vector(traj[i].X,traj[i].Xhalf,traj[i-1].X,traj[i].Kcon,traj[i].Kconhalf,traj[i-1].Kcon,Econt[2],e2Mid,e2Final,traj[i].dl);
@@ -409,17 +423,24 @@ void dump_var_along(int i, int j, int nstep, struct of_traj *traj, int nx, int n
       ntetrad[i*NDIM*NDIM + mu*NDIM + nu] = N_tetrad[mu][nu];
       ncoord[i*NDIM*NDIM + mu*NDIM + nu] = N_coord[mu][nu];
     }
-    // Record the Stokes parameters in the correct index
-    tensor_to_stokes(N_tetrad,&(stokes[(i)*NDIM]), &(stokes[(i)*NDIM+1]), &(stokes[(i)*NDIM+2]), &(stokes[(i)*NDIM+3]));
-    project_N(traj[i-1].X, traj[i-1].Kcon, N_coord, &(stokes_coordinate[i*NDIM]), &(stokes_coordinate[i*NDIM+1]),
-              &(stokes_coordinate[i*NDIM+2]), &(stokes_coordinate[i*NDIM+3]), rotcam);
+    // Record the Stokes parameters pre-step
+    tensor_to_stokes(N_coord, &(stokes_coordinate1[(i)*NDIM]), &(stokes_coordinate1[(i)*NDIM+1]),
+                     &(stokes_coordinate1[(i)*NDIM+2]), &(stokes_coordinate1[(i)*NDIM+3]));
+    tensor_to_stokes(N_tetrad, &(stokes1[(i)*NDIM]), &(stokes1[(i)*NDIM+1]), &(stokes1[(i)*NDIM+2]), &(stokes1[(i)*NDIM+3]));
+
+    //project_N(traj[i-1].X, traj[i-1].Kcon, N_coord, &(stokes_camera[i*NDIM]), &(stokes_camera[i*NDIM+1]),
+    //          &(stokes_camera[i*NDIM+2]), &(stokes_camera[i*NDIM+3]), rotcam);
 
     // Integrate and record results
-    int flag = integrate_emission(&(traj[i]), 1, &Intensity, &Tau, &tauF, N_coord, params);
+    int flag = integrate_emission(&(traj[i]), 1, &Intensity, &Tau, &tauF, N_coord, params, 1);
     I_unpol[i] = Intensity;
-    // project_N(traj[i-1].X, traj[i-1].Kcon, N_coord, &(stokes[i*NDIM]), &(stokes[i*NDIM+1]), &(stokes[i*NDIM+2]), &(stokes[i*NDIM+3]),0;
-    // any_tensor_to_stokes(N_coord, Gcov, &(stokes_coordinate[i*NDIM]), &(stokes_coordinate[i*NDIM+1]), &(stokes_coordinate[i*NDIM+2]), &(stokes_coordinate[i*NDIM+3]));
-    
+  
+    // Convert N to Stokes in plasma frame and record the coherency tensor after the current step
+    complex_coord_to_tetrad_rank2(N_coord,Ecovt,N_tetrad);
+    // Record the Stokes parameters post-step
+    tensor_to_stokes(N_coord, &(stokes_coordinate2[(i)*NDIM]), &(stokes_coordinate2[(i)*NDIM+1]),
+                     &(stokes_coordinate2[(i)*NDIM+2]), &(stokes_coordinate2[(i)*NDIM+3]));
+    tensor_to_stokes(N_tetrad, &(stokes2[(i)*NDIM]), &(stokes2[(i)*NDIM+1]), &(stokes2[(i)*NDIM+2]), &(stokes2[(i)*NDIM+3]));
 
     if (flag) printf("Flagged integration when tracing: %d\n", flag);
 
@@ -460,6 +481,9 @@ void dump_var_along(int i, int j, int nstep, struct of_traj *traj, int nx, int n
   hdf5_write_chunked_array(k_unpol, "k_unpol", 3, fdims_s, fstart_s, fcount_s, mdims_s, mstart_s, chunk_s, H5T_IEEE_F64LE);
   hdf5_write_chunked_array(I_unpol, "I_unpol", 3, fdims_s, fstart_s, fcount_s, mdims_s, mstart_s, chunk_s, H5T_IEEE_F64LE);
 
+  hdf5_write_chunked_array(econ0_badness, "econ0_badness", 3, fdims_s, fstart_s, fcount_s, mdims_s, mstart_s, chunk_s, H5T_IEEE_F64LE);
+  hdf5_write_chunked_array(econ3_badness, "econ3_badness", 3, fdims_s, fstart_s, fcount_s, mdims_s, mstart_s, chunk_s, H5T_IEEE_F64LE);
+
   // VECTORS: Anything with N values per geodesic step
   hsize_t fdims_v[] = { nx, ny, params->maxnstep, 4 };
   hsize_t chunk_v[] =  { 1, 1, 200, 4 };
@@ -481,8 +505,10 @@ void dump_var_along(int i, int j, int nstep, struct of_traj *traj, int nx, int n
   hdf5_write_chunked_array(alpha_inv, "alpha_inv", 4, fdims_v, fstart_v, fcount_v, mdims_v, mstart_v, chunk_v, H5T_IEEE_F64LE);
   hdf5_write_chunked_array(rho_inv, "rho_inv", 4, fdims_v, fstart_v, fcount_v, mdims_v, mstart_v, chunk_v, H5T_IEEE_F64LE);
 
-  hdf5_write_chunked_array(stokes, "stokes", 4, fdims_v, fstart_v, fcount_v, mdims_v, mstart_v, chunk_v, H5T_IEEE_F64LE);
-  // hdf5_write_chunked_array(stokes_coordinate, "stokes_coordinate", 4, fdims_v, fstart_v, fcount_v, mdims_v, mstart_v, chunk_v, H5T_IEEE_F64LE);
+  hdf5_write_chunked_array(stokes1, "stokes_pre", 4, fdims_v, fstart_v, fcount_v, mdims_v, mstart_v, chunk_v, H5T_IEEE_F64LE);
+  hdf5_write_chunked_array(stokes_coordinate1, "stokes_coordinate_pre", 4, fdims_v, fstart_v, fcount_v, mdims_v, mstart_v, chunk_v, H5T_IEEE_F64LE);
+  hdf5_write_chunked_array(stokes2, "stokes_post", 4, fdims_v, fstart_v, fcount_v, mdims_v, mstart_v, chunk_v, H5T_IEEE_F64LE);
+  hdf5_write_chunked_array(stokes_coordinate2, "stokes_coordinate_post", 4, fdims_v, fstart_v, fcount_v, mdims_v, mstart_v, chunk_v, H5T_IEEE_F64LE);
 
   hdf5_write_chunked_array(e2Constructed, "e2Constructed", 4, fdims_v, fstart_v, fcount_v, mdims_v, mstart_v, chunk_v, H5T_IEEE_F64LE);
   hdf5_write_chunked_array(e2ConstructedCov, "e2ConstructedCov", 4, fdims_v, fstart_v, fcount_v, mdims_v, mstart_v, chunk_v, H5T_IEEE_F64LE);
@@ -518,8 +544,8 @@ void dump_var_along(int i, int j, int nstep, struct of_traj *traj, int nx, int n
   free(Kcon); //free(Kcov);
   //free(Ucon); free(Ucov); free(Bcon); free(Bcov);
   free(j_inv); free(alpha_inv); free(rho_inv);
-  free(stokes); 
-  // free(stokes_coordinate);
+  free(stokes1); free(stokes2);
+  free(stokes_coordinate1); free(stokes_coordinate2);
   free(e2Constructed);free(e2ConstructedCov);
   free(e2Transported);free(e2TransportedCov);
   free(prims);
