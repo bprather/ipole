@@ -10,28 +10,28 @@
 #include "par.h"
 
 // Globals we're in charge of
-double M_unit;
-double L_unit;
-double T_unit;
-double RHO_unit;
-double U_unit;
-double B_unit;
-double Te_unit;
+REAL M_unit;
+REAL L_unit;
+REAL T_unit;
+REAL RHO_unit;
+REAL U_unit;
+REAL B_unit;
+REAL Te_unit;
 
 // TODO get rid of these in ipole proper to get rid of them here
-double rmax_geo = 1e30;
-double model_dl;
+REAL rmax_geo = 1e30;
+REAL model_dl;
 // TODO this default needs to be kept in sync with maxnstep,
 // to avoid difficulties
 static int max_stokes = 10000;
 
 // Model parameters: private
-double jIc, jQc, jUc, jVc;
-double aIc, aQc, aUc, aVc;
-double rQc, rUc, rVc;
+REAL jIc, jQc, jUc, jVc;
+REAL aIc, aQc, aUc, aVc;
+REAL rQc, rUc, rVc;
 
-double *stokes_I, *stokes_Q, *stokes_U, *stokes_V;
-double *lambda;
+REAL *stokes_I, *stokes_Q, *stokes_U, *stokes_V;
+REAL *lambda;
 
 void try_set_model_parameter(const char *word, const char *value)
 {
@@ -58,7 +58,7 @@ void try_set_model_parameter(const char *word, const char *value)
   set_by_word_val(word, value, "max_stokes", &max_stokes, TYPE_INT);
 }
 
-void init_model(double *tA, double *tB)
+void init_model(REAL *tA, REAL *tB)
 {
   // Set all the geometry globals we need
   metric = METRIC_MINKOWSKI;
@@ -73,11 +73,11 @@ void init_model(double *tA, double *tB)
   U_unit = 1.0;
   B_unit = 1.0;
 
-  stokes_I = calloc(max_stokes, sizeof(double));
-  stokes_Q = calloc(max_stokes, sizeof(double));
-  stokes_U = calloc(max_stokes, sizeof(double));
-  stokes_V = calloc(max_stokes, sizeof(double));
-  lambda = calloc(max_stokes, sizeof(double));;
+  stokes_I = calloc(max_stokes, sizeof(REAL));
+  stokes_Q = calloc(max_stokes, sizeof(REAL));
+  stokes_U = calloc(max_stokes, sizeof(REAL));
+  stokes_V = calloc(max_stokes, sizeof(REAL));
+  lambda = calloc(max_stokes, sizeof(REAL));;
 
 }
 
@@ -87,32 +87,32 @@ void output_hdf5()
   hdf5_make_directory("emissivities");
   hdf5_set_directory("/header/emissivities/");
 
-  hdf5_write_single_val(&jIc, "jI", H5T_IEEE_F64LE);
-  hdf5_write_single_val(&jQc, "jQ", H5T_IEEE_F64LE);
-  hdf5_write_single_val(&jUc, "jU", H5T_IEEE_F64LE);
-  hdf5_write_single_val(&jVc, "jV", H5T_IEEE_F64LE);
+  hdf5_write_single_val(&jIc, "jI", H5T_DOUBLE);
+  hdf5_write_single_val(&jQc, "jQ", H5T_DOUBLE);
+  hdf5_write_single_val(&jUc, "jU", H5T_DOUBLE);
+  hdf5_write_single_val(&jVc, "jV", H5T_DOUBLE);
 
-  hdf5_write_single_val(&aIc, "aI", H5T_IEEE_F64LE);
-  hdf5_write_single_val(&aQc, "aQ", H5T_IEEE_F64LE);
-  hdf5_write_single_val(&aUc, "aU", H5T_IEEE_F64LE);
-  hdf5_write_single_val(&aVc, "aV", H5T_IEEE_F64LE);
+  hdf5_write_single_val(&aIc, "aI", H5T_DOUBLE);
+  hdf5_write_single_val(&aQc, "aQ", H5T_DOUBLE);
+  hdf5_write_single_val(&aUc, "aU", H5T_DOUBLE);
+  hdf5_write_single_val(&aVc, "aV", H5T_DOUBLE);
 
-  hdf5_write_single_val(&rQc, "rQ", H5T_IEEE_F64LE);
-  hdf5_write_single_val(&rUc, "rU", H5T_IEEE_F64LE);
-  hdf5_write_single_val(&rVc, "rV", H5T_IEEE_F64LE);
+  hdf5_write_single_val(&rQc, "rQ", H5T_DOUBLE);
+  hdf5_write_single_val(&rUc, "rU", H5T_DOUBLE);
+  hdf5_write_single_val(&rVc, "rV", H5T_DOUBLE);
 
   hdf5_set_directory("/");
   hsize_t stokes_dims[1] = {max_stokes};
-  hdf5_write_full_array(stokes_I, "I", 1, stokes_dims, H5T_IEEE_F64LE);
-  hdf5_write_full_array(stokes_Q, "Q", 1, stokes_dims, H5T_IEEE_F64LE);
-  hdf5_write_full_array(stokes_U, "U", 1, stokes_dims, H5T_IEEE_F64LE);
-  hdf5_write_full_array(stokes_V, "V", 1, stokes_dims, H5T_IEEE_F64LE);
-  hdf5_write_full_array(lambda, "lam", 1, stokes_dims, H5T_IEEE_F64LE);
+  hdf5_write_full_array(stokes_I, "I", 1, stokes_dims, H5T_DOUBLE);
+  hdf5_write_full_array(stokes_Q, "Q", 1, stokes_dims, H5T_DOUBLE);
+  hdf5_write_full_array(stokes_U, "U", 1, stokes_dims, H5T_DOUBLE);
+  hdf5_write_full_array(stokes_V, "V", 1, stokes_dims, H5T_DOUBLE);
+  hdf5_write_full_array(lambda, "lam", 1, stokes_dims, H5T_DOUBLE);
 }
 
 //// PUBLIC INTERFACE: shortcut all the normal emissivity functions to return constants////
 
-void record_stokes_parameters(double SI, double SQ, double SU, double SV, double lam)
+void record_stokes_parameters(REAL SI, REAL SQ, REAL SU, REAL SV, REAL lam)
 {
   static int nstep = 0;
   stokes_I[nstep] = SI;
@@ -123,10 +123,10 @@ void record_stokes_parameters(double SI, double SQ, double SU, double SV, double
   ++nstep;
 }
 
-void get_model_jar(double X[NDIM], double Kcon[NDIM],
-    double *jI, double *jQ, double *jU, double *jV,
-    double *aI, double *aQ, double *aU, double *aV,
-    double *rQ, double *rU, double *rV)
+void get_model_jar(REAL X[NDIM], REAL Kcon[NDIM],
+    REAL *jI, REAL *jQ, REAL *jU, REAL *jV,
+    REAL *aI, REAL *aQ, REAL *aU, REAL *aV,
+    REAL *rQ, REAL *rU, REAL *rV)
 {
   *jI = jIc;
   *jQ = jQc;
@@ -143,7 +143,7 @@ void get_model_jar(double X[NDIM], double Kcon[NDIM],
   *rV = rVc;
 }
 
-void get_model_jk(double X[NDIM], double Kcon[NDIM], double *jnuinv, double *knuinv)
+void get_model_jk(REAL X[NDIM], REAL Kcon[NDIM], REAL *jnuinv, REAL *knuinv)
 {
   *jnuinv = jIc;
   *knuinv = aIc;
@@ -151,18 +151,18 @@ void get_model_jk(double X[NDIM], double Kcon[NDIM], double *jnuinv, double *knu
 
 
 //// STUBS: Keep the rest of ipole off our back ////
-int radiating_region(double X[NDIM])
+int radiating_region(REAL X[NDIM])
 {
     return 1;
 }
 
 // B does NOT affect polarization calculation, since we control the coefficients
 // U, however, would, so we set it to 0
-void get_model_fourv(double X[NDIM], double Kcon[NDIM],
-                     double Ucon[NDIM], double Ucov[NDIM],
-                     double Bcon[NDIM], double Bcov[NDIM])
+void get_model_fourv(REAL X[NDIM], REAL Kcon[NDIM],
+                     REAL Ucon[NDIM], REAL Ucov[NDIM],
+                     REAL Bcon[NDIM], REAL Bcov[NDIM])
 {
-  double gcov[NDIM][NDIM], gcon[NDIM][NDIM];
+  REAL gcov[NDIM][NDIM], gcon[NDIM][NDIM];
 
   gcov_func(X, gcov);
   gcon_func(gcov, gcon);
@@ -187,7 +187,7 @@ void get_model_fourv(double X[NDIM], double Kcon[NDIM],
   }
 }
 
-double get_model_thetae(double X[NDIM]) {return 0;}
-double get_model_b(double X[NDIM]) {return 1;}
-double get_model_ne(double X[NDIM]) {return 1;} // Otherwise we trigger the "empty space" emissivity
-void get_model_primitives(double X[NDIM], double *p) {return;}
+REAL get_model_thetae(REAL X[NDIM]) {return 0;}
+REAL get_model_b(REAL X[NDIM]) {return 1;}
+REAL get_model_ne(REAL X[NDIM]) {return 1;} // Otherwise we trigger the "empty space" emissivity
+void get_model_primitives(REAL X[NDIM], REAL *p) {return;}

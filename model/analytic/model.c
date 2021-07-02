@@ -7,28 +7,28 @@
 #include "par.h"
 
 // Globals we're in charge of
-double M_unit;
-double L_unit;
-double T_unit;
-double U_unit;
-double B_unit;
-double Te_unit;
+REAL M_unit;
+REAL L_unit;
+REAL T_unit;
+REAL U_unit;
+REAL B_unit;
+REAL Te_unit;
 // This one is useful
-double RHO_unit;
+REAL RHO_unit;
 
 // Model parameters: public
-double rmax_geo = 1000.0;
+REAL rmax_geo = 1000.0;
 // Model parameters: private
-static double rmin_geo = 0;
-static double MBH_solar = 4.e6;
-static double RHO_unit_in = 0;
+static REAL rmin_geo = 0;
+static REAL MBH_solar = 4.e6;
+static REAL RHO_unit_in = 0;
 
-static double MBH;
+static REAL MBH;
 static int model;
 
 // e.g. parameterization from GRRT paper
-double A, alpha, height, l0, freqcgs;
-double r_isco;
+REAL A, alpha, height, l0, freqcgs;
+REAL r_isco;
 
 /**
  * This is a template for analytic problems, which consist of prescription:
@@ -70,7 +70,7 @@ void try_set_model_parameter(const char *word, const char *value)
 /**
  * Initialization takes boundary times, for slow light.  Most analytic models won't use them.
  */
-void init_model(double *tA, double *tB)
+void init_model(REAL *tA, REAL *tB)
 {
   // Set all the geometry globals we need
   // TODO do this in geometry?  Deal with model/geom interface...
@@ -113,8 +113,8 @@ void init_model(double *tA, double *tB)
   // We already set stuff from parameters, so set_units here
   set_units();
 
-  printf("Running analytic model %d:\nMBH: %g\na: %g\nRh: %g\nR_isco: %g\n\n", model, MBH, a, Rh, r_isco);
-  printf("A: %g\nalpha: %g\nh: %g\nl0: %g\n\n", A, alpha, height, l0);
+  printf("Running analytic model %d:\nMBH: %Lg\na: %Lg\nRh: %Lg\nR_isco: %Lg\n\n", model, MBH, a, Rh, r_isco);
+  printf("A: %Lg\nalpha: %Lg\nh: %Lg\nl0: %Lg\n\n", A, alpha, height, l0);
 }
 
 void set_units()
@@ -139,8 +139,8 @@ void set_units()
   Rout = 1000.0;
   // Limit rmax_geo?
 
-  double z1 = 1. + pow(1. - a * a, 1. / 3.) * (pow(1. + a, 1. / 3.) + pow(1. - a, 1. / 3.));
-  double z2 = sqrt(3. * a * a + z1 * z1);
+  REAL z1 = 1. + pow(1. - a * a, 1. / 3.) * (pow(1. + a, 1. / 3.) + pow(1. - a, 1. / 3.));
+  REAL z2 = sqrt(3. * a * a + z1 * z1);
   r_isco = 3. + z2 - copysign(sqrt((3. - z1) * (3. + z1 + 2. * z2)), a);
   startx[0] = 0.0;
   startx[1] = log(Rin);
@@ -156,52 +156,52 @@ void output_hdf5()
 {
   hdf5_set_directory("/header/");
   double zero = 0;
-  hdf5_write_single_val(&zero, "t", H5T_IEEE_F64LE);
-  hdf5_write_single_val(&a, "a", H5T_IEEE_F64LE);
+  hdf5_write_single_val(&zero, "t", H5T_DOUBLE);
+  hdf5_write_single_val(&a, "a", H5T_DOUBLE);
 
   hdf5_write_single_val(&model, "model", H5T_STD_I32LE);
-  hdf5_write_single_val(&A, "A", H5T_IEEE_F64LE);
-  hdf5_write_single_val(&alpha, "alpha", H5T_IEEE_F64LE);
-  hdf5_write_single_val(&height, "height", H5T_IEEE_F64LE);
-  hdf5_write_single_val(&l0, "l0", H5T_IEEE_F64LE);
+  hdf5_write_single_val(&A, "A", H5T_DOUBLE);
+  hdf5_write_single_val(&alpha, "alpha", H5T_DOUBLE);
+  hdf5_write_single_val(&height, "height", H5T_DOUBLE);
+  hdf5_write_single_val(&l0, "l0", H5T_DOUBLE);
 
   hdf5_make_directory("units");
   hdf5_set_directory("/header/units/");
-  hdf5_write_single_val(&zero, "M_unit", H5T_IEEE_F64LE);
-  hdf5_write_single_val(&L_unit, "L_unit", H5T_IEEE_F64LE);
-  hdf5_write_single_val(&T_unit, "T_unit", H5T_IEEE_F64LE);
+  hdf5_write_single_val(&zero, "M_unit", H5T_DOUBLE);
+  hdf5_write_single_val(&L_unit, "L_unit", H5T_DOUBLE);
+  hdf5_write_single_val(&T_unit, "T_unit", H5T_DOUBLE);
 
   hdf5_set_directory("/");
 }
 
 //// INTERFACE: Functions called from elsewhere in ipole ////
-double get_model_ne(double X[NDIM])
+REAL get_model_ne(REAL X[NDIM])
 {
   // Matter model defined in Gold et al 2020 section 3
-  double r, th;
+  REAL r, th;
   bl_coord(X, &r, &th);
-  double n_exp = 1./2 * (pow(r/10, 2) + pow(height * cos(th), 2));
+  REAL n_exp = 1./2 * (pow(r/10, 2) + pow(height * cos(th), 2));
   // Cutoff when result will be ~0
   return ( n_exp < 200 ) ? RHO_unit * exp(-n_exp) : 0;
 }
 
-void get_model_jk(double X[NDIM], double Kcon[NDIM], double *jnuinv, double *knuinv)
+void get_model_jk(REAL X[NDIM], REAL Kcon[NDIM], REAL *jnuinv, REAL *knuinv)
 {
   // Emission model defined in Gold et al 2020 section 3
-  double n = get_model_ne(X);
+  REAL n = get_model_ne(X);
 
-  double Ucon[NDIM], Ucov[NDIM], Bcon[NDIM], Bcov[NDIM];
+  REAL Ucon[NDIM], Ucov[NDIM], Bcon[NDIM], Bcov[NDIM];
   get_model_fourv(X, Kcon, Ucon, Ucov, Bcon, Bcov);
-  double nu = get_fluid_nu(Kcon, Ucov);
+  REAL nu = get_fluid_nu(Kcon, Ucov);
 
   *jnuinv = fmax( n * pow(nu / freqcgs, -alpha) / pow(nu, 2), 0);
   *knuinv = fmax( (A * n * pow(nu / freqcgs, -(2.5 + alpha)) + 1.e-54) * nu, 0);
 }
 
-void get_model_jar(double X[NDIM], double Kcon[NDIM],
-    double *jI, double *jQ, double *jU, double *jV,
-    double *aI, double *aQ, double *aU, double *aV,
-    double *rQ, double *rU, double *rV)
+void get_model_jar(REAL X[NDIM], REAL Kcon[NDIM],
+    REAL *jI, REAL *jQ, REAL *jU, REAL *jV,
+    REAL *aI, REAL *aQ, REAL *aU, REAL *aV,
+    REAL *rQ, REAL *rU, REAL *rV)
 {
   // Define a model here relating X,K -> j_S, alpha_S, rho_S
   // (and below relating X,K -> u,B 4-vectors)
@@ -210,7 +210,7 @@ void get_model_jar(double X[NDIM], double Kcon[NDIM],
   // Just take the unpolarized emissivity and absorptivity as I,
   // and set the rest to zero
   // Of course, you can be more elaborate
-  double j, k;
+  REAL j, k;
   get_model_jk(X, Kcon, &j, &k);
 
   *jI = j;
@@ -230,39 +230,39 @@ void get_model_jar(double X[NDIM], double Kcon[NDIM],
   return;
 }
 
-void get_model_fourv(double X[NDIM], double Kcon[NDIM], double Ucon[NDIM], double Ucov[NDIM],
-                     double Bcon[NDIM], double Bcov[NDIM])
+void get_model_fourv(REAL X[NDIM], REAL Kcon[NDIM], REAL Ucon[NDIM], REAL Ucov[NDIM],
+                     REAL Bcon[NDIM], REAL Bcov[NDIM])
 {
-  double r, th;
+  REAL r, th;
   bl_coord(X, &r, &th);
   // Note these quantities from Gold et al are in BL!
   // We could have converted the problem to KS, but instead we did this
-  double R = r * sin(th);
-  double l = (l0 / (1 + R)) * pow(R, 1 + 0.5);
+  REAL R = r * sin(th);
+  REAL l = (l0 / (1 + R)) * pow(R, 1 + 0.5);
 
   // Metrics: BL
-  double bl_gcov[NDIM][NDIM], bl_gcon[NDIM][NDIM];
+  REAL bl_gcov[NDIM][NDIM], bl_gcon[NDIM][NDIM];
   gcov_bl(r, th, bl_gcov);
   gcon_func(bl_gcov, bl_gcon);
   // Native
-  double gcov[NDIM][NDIM], gcon[NDIM][NDIM];
+  REAL gcov[NDIM][NDIM], gcon[NDIM][NDIM];
   gcov_func(X, gcov);
   gcon_func(gcov, gcon);
 
   // Get the normal observer velocity for Ucon/Ucov, in BL coordinates
-  double bl_Ucov[NDIM];
-  double ubar = sqrt(-1. / (bl_gcon[0][0] - 2. * bl_gcon[0][3] * l
+  REAL bl_Ucov[NDIM];
+  REAL ubar = sqrt(-1. / (bl_gcon[0][0] - 2. * bl_gcon[0][3] * l
                   + bl_gcon[3][3] * l * l));
   bl_Ucov[0] = -ubar;
   bl_Ucov[1] = 0.;
   bl_Ucov[2] = 0.;
   bl_Ucov[3] = l * ubar;
 
-  double bl_Ucon[NDIM];
+  REAL bl_Ucon[NDIM];
   flip_index(bl_Ucov, bl_gcon, bl_Ucon);
 
   // Transform to KS coordinates,
-  double ks_Ucon[NDIM];
+  REAL ks_Ucon[NDIM];
   bl_to_ks(X, bl_Ucon, ks_Ucon);
   // then to our coordinates,
   vec_from_ks(X, ks_Ucon, Ucon);
@@ -271,7 +271,7 @@ void get_model_fourv(double X[NDIM], double Kcon[NDIM], double Ucon[NDIM], doubl
   flip_index(Ucon, gcov, Ucov);
 
   // ...or don't do any of that
-  // double ubar = sqrt(-1. / (gcon[0][0] - 2. * gcon[0][3] * l
+  // REAL ubar = sqrt(-1. / (gcon[0][0] - 2. * gcon[0][3] * l
   //                 + gcon[3][3] * l * l));
   // Ucov[0] = -ubar;
   // Ucov[1] = 0.;
@@ -293,20 +293,20 @@ void get_model_fourv(double X[NDIM], double Kcon[NDIM], double Ucon[NDIM], doubl
  * tendencies when making tetrads.  This will return a correct value even for a
  * possible fluid/field model later, too.
  */
-double get_model_b(double X[NDIM])
+REAL get_model_b(REAL X[NDIM])
 {
-  double Ucon[NDIM],Bcon[NDIM];
-  double Ucov[NDIM],Bcov[NDIM];
-  double Kcon[NDIM] = {0}; // TODO interface change if we ever need a real one here
+  REAL Ucon[NDIM],Bcon[NDIM];
+  REAL Ucov[NDIM],Bcov[NDIM];
+  REAL Kcon[NDIM] = {0}; // TODO interface change if we ever need a real one here
   get_model_fourv(X, Kcon, Ucon, Ucov, Bcon, Bcov);
   return sqrt(Bcon[0]*Bcov[0] + Bcon[1]*Bcov[1] + Bcon[2]*Bcov[2] + Bcon[3]*Bcov[3]) * B_unit;
 }
 
-int radiating_region(double X[NDIM])
+int radiating_region(REAL X[NDIM])
 {
   // If you don't want conditionals in get_model_jar, 
   // you can control here where the coefficients are applied
-  double r, th;
+  REAL r, th;
   bl_coord(X, &r, &th);
   return r > Rh + 0.0001 && r > rmin_geo && r < 1000.0;
 }
@@ -314,9 +314,9 @@ int radiating_region(double X[NDIM])
 //// STUBS: Functions for normal models which we don't use ////
 // Define these to specify a fluid model: e- density/temperature for
 // synchrotron radiation based on an energy distribution
-double get_model_thetae(double X[NDIM]) {return 0;}
-void get_model_powerlaw_vals(double X[NDIM], double *p, double *n,
-          double *gamma_min, double *gamma_max, double *gamma_cut) {return;}
+REAL get_model_thetae(REAL X[NDIM]) {return 0;}
+void get_model_powerlaw_vals(REAL X[NDIM], REAL *p, REAL *n,
+          REAL *gamma_min, REAL *gamma_max, REAL *gamma_cut) {return;}
 
 // This is only called for trace file output, and doesn't really apply to analytic models
-void get_model_primitives(double X[NDIM], double *p) {return;}
+void get_model_primitives(REAL X[NDIM], REAL *p) {return;}

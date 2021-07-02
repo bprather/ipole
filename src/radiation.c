@@ -11,9 +11,9 @@ radiation-related utilities.
 
 #include "decs.h"
 
-double Bnu_inv (double nu, double Thetae)
+REAL Bnu_inv (REAL nu, REAL Thetae)
 {
-  double x = HPL * nu / (ME * CL * CL * Thetae);
+  REAL x = HPL * nu / (ME * CL * CL * Thetae);
 
   if (x < 2.e-3) /* Taylor expand */
     return ((2. * HPL / (CL * CL))
@@ -23,16 +23,16 @@ double Bnu_inv (double nu, double Thetae)
 }
 
 /* get jnu, and convert to jnu/nu^2 = jnu_invariant */
-double jnu_inv(double nu, double Thetae, double Ne, double B, double theta)
+REAL jnu_inv(REAL nu, REAL Thetae, REAL Ne, REAL B, REAL theta)
 {
-    double j = jnu_synch(nu, Ne, Thetae, B, theta);
+    REAL j = jnu_synch(nu, Ne, Thetae, B, theta);
     return (j / (nu * nu));
 }
 
 /* get frequency in fluid frame, in Hz */
-double get_fluid_nu(double Kcon[NDIM], double Ucov[NDIM])
+REAL get_fluid_nu(REAL Kcon[NDIM], REAL Ucov[NDIM])
 {
-    double nu;
+    REAL nu;
 
     /* this is the energy in electron rest-mass units */
     nu = -(Kcon[0] * Ucov[0] + Kcon[1] * Ucov[1] +
@@ -42,14 +42,14 @@ double get_fluid_nu(double Kcon[NDIM], double Ucov[NDIM])
     if (nu < 0.) {
       nu = 1.;
 #if DEBUG
-      fprintf(stderr, "Fluid nu < 0: %g !", nu);
+      fprintf(stderr, "Fluid nu < 0: %Lg !", nu);
 #endif
     }
 
     if (isnan(nu)) {
-      fprintf(stderr, "isnan get_fluid_nu, K: %g %g %g %g\n",
+      fprintf(stderr, "isnan get_fluid_nu, K: %Lg %Lg %Lg %Lg\n",
               Kcon[0], Kcon[1], Kcon[2], Kcon[3]);
-      fprintf(stderr, "isnan get_fluid_nu, U: %g %g %g %g\n",
+      fprintf(stderr, "isnan get_fluid_nu, U: %Lg %Lg %Lg %Lg\n",
               Ucov[0], Ucov[1], Ucov[2], Ucov[3]);
     }
 
@@ -57,9 +57,9 @@ double get_fluid_nu(double Kcon[NDIM], double Ucov[NDIM])
 }
 
 /* return angle between magnetic field and wavevector */
-double get_bk_angle(double X[NDIM], double Kcon[NDIM], double Ucov[NDIM], double Bcon[NDIM], double Bcov[NDIM])
+REAL get_bk_angle(REAL X[NDIM], REAL Kcon[NDIM], REAL Ucov[NDIM], REAL Bcon[NDIM], REAL Bcov[NDIM])
 {
-    double B, k, mu;
+    REAL B, k, mu;
 
     B = sqrt(fabs
 	     (Bcon[0] * Bcov[0] + Bcon[1] * Bcov[1] + Bcon[2] * Bcov[2] +

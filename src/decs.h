@@ -26,21 +26,28 @@
 #define MULOOP for(int mu=0;mu<NDIM;mu++)
 #define MUNULOOP for(int mu=0;mu<NDIM;mu++) for(int nu=0;nu<NDIM;nu++)
 
+#define H5T_DOUBLE H5T_IEEE_F64LE
+// accurate...
+//#define REAL _Float128
+#define REAL long double
+// ...or fast
+//#define REAL double
+
 struct of_traj {
-  double dl;
-  double X[NDIM];
-  double Kcon[NDIM];
-  double Xhalf[NDIM];
-  double Kconhalf[NDIM];
+  REAL dl;
+  REAL X[NDIM];
+  REAL Kcon[NDIM];
+  REAL Xhalf[NDIM];
+  REAL Kconhalf[NDIM];
 };
 
 // used for slow light
 struct of_image {
   int nstep;
-  double intensity;
-  double tau;
-  double tauF;
-  double complex N_coord[NDIM][NDIM];
+  REAL intensity;
+  REAL tau;
+  REAL tauF;
+  _Complex REAL N_coord[NDIM][NDIM];
 };
 
 #endif // DECS_H

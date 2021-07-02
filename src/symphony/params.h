@@ -1,18 +1,20 @@
 #ifndef SYMPHONY_PARAMS_H_
 #define SYMPHONY_PARAMS_H_
 
+#include "decs.h"
+
 #include <math.h>
 
 struct parameters
 {
   /*parameters of calculation*/
   /*we use Gaussian CGS units*/
-  double pi;        
-  double mass_electron;
-  double plancks_constant;
-  double speed_light;
-  double electron_charge;
-  double n_max;
+  REAL pi;        
+  REAL mass_electron;
+  REAL plancks_constant;
+  REAL speed_light;
+  REAL electron_charge;
+  REAL n_max;
   int    C;       
   /*Keys for the distributions*/
   int    MAXWELL_JUETTNER;
@@ -31,65 +33,65 @@ struct parameters
   int SUSCEPT_METHOD;
 
   /*USER PARAMS:*/
-  double nu;               /* GHz */
-  double magnetic_field;   /* Gauss */
-  double electron_density; /* 1/cc */
-  double observer_angle;   /* rad */  
+  REAL nu;               /* GHz */
+  REAL magnetic_field;   /* Gauss */
+  REAL electron_density; /* 1/cc */
+  REAL observer_angle;   /* rad */  
   int    distribution;     
   int    polarization; 
   int    mode;             /*Emissivity or Absorptivity*/
-  double gamma_cutoff;
+  REAL gamma_cutoff;
   /* Options for fits */
   int approximate;         /*Use approximate Bessel functions for speed*/
   int dexter_fit;
 
   /*Thermal distribution parameters*/
-  double theta_e;
+  REAL theta_e;
 
   /*power law parameters*/
-  double power_law_p;
-  double gamma_min;
-  double gamma_max;
+  REAL power_law_p;
+  REAL gamma_min;
+  REAL gamma_max;
 
   /*kappa distribution parameters*/
-  double kappa;
-  double kappa_width;
+  REAL kappa;
+  REAL kappa_width;
 
   /*Choose if n-space peak is known, or if it must be found adaptively */
   int use_n_peak;
-  double (*n_peak)(struct parameters *);
+  REAL (*n_peak)(struct parameters *);
 
   /*Set distribution_function */
-  double (*distribution_function)(double gamma, struct parameters *);
+  REAL (*distribution_function)(REAL gamma, struct parameters *);
 
   /*analytic_differential_of_f, which can be used as a test of the 
     numerical differential_of_f */
-  double (*analytic_differential)(double gamma, struct parameters *);
+  REAL (*analytic_differential)(REAL gamma, struct parameters *);
 
   int stokes_v_switch;
 
   char *error_message; /* if not NULL, records source of error in current calculation */
 
   /*susceptibility tensor paramsS */
-  double gamma;
-  double epsilon0;
-  double epsilon;
-  double omega;
-  double omega_c;
-  double omega_p;
-  double real;
-  double (*tau_integrand)(double, void * parameters);
-  double (*gamma_integrand)(double, void * parameters);
+  REAL gamma;
+  REAL epsilon0;
+  REAL epsilon;
+  REAL omega;
+  REAL omega_c;
+  REAL omega_p;
+  REAL real;
+  REAL (*tau_integrand)(REAL, void * parameters);
+  REAL (*gamma_integrand)(REAL, void * parameters);
 };
 
 struct parametersGSL
 {
   struct parameters params;
-  double n;
+  REAL n;
 };
 
 void setConstParams(struct parameters *params);
-double get_nu_c(struct parameters params);
-double get_omega_p(struct parameters params);
+REAL get_nu_c(struct parameters params);
+REAL get_omega_p(struct parameters params);
 
 #endif /* SYMPHONY_PARAMS_H_ */

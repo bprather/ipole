@@ -9,19 +9,19 @@
 
 // feel free to change any part of this structure
 typedef struct params_t {
-  double rcam;          // Camera radius in r_g
-  double thetacam;      // in degrees from the pole
-  double phicam;        // in degrees
-  double rotcam;        // in degrees
-  double dx, dy;        // FOV in-plane in r_g
-  double fovx_dsource, fovy_dsource; // FOV (from Earth) in muas
+  REAL rcam;          // Camera radius in r_g
+  REAL thetacam;      // in degrees from the pole
+  REAL phicam;        // in degrees
+  REAL rotcam;        // in degrees
+  REAL dx, dy;        // FOV in-plane in r_g
+  REAL fovx_dsource, fovy_dsource; // FOV (from Earth) in muas
   int nx, ny;           // image dimensions in px
-  double dsource;       // in pc
-  double freqcgs;       // ... in cgs
+  REAL dsource;       // in pc
+  REAL freqcgs;       // ... in cgs
   int old_centering;    // 0 uses k_phi=0 "ZAMO" new centering, 1 uses k^phi=0 old centering
 
   // Geodesic accuracy
-  double eps;
+  REAL eps;
   int maxnstep;
 
   int add_ppm;          // Whether to additionally make a ppm image of I
@@ -39,16 +39,16 @@ typedef struct params_t {
 
   // Adaptive tracing
   int nx_min, ny_min;   // dimensions of lowest resolution image
-  double refine_abs, refine_rel; // Refinement tolerances
-  double refine_cut;    // minimum intensity at which to bother refining
+  REAL refine_abs, refine_rel; // Refinement tolerances
+  REAL refine_cut;    // minimum intensity at which to bother refining
   int nearest_neighbor; // use nearest-neighbor instead of matching-order interpolation
 
   // ML parameters
-  double xoff, yoff;    // in pixels
+  REAL xoff, yoff;    // in pixels
 
   // slow light
-  double img_cadence;
-  double restart_int;
+  REAL img_cadence;
+  REAL restart_int;
 
   // Save out variables along a geodesic
   int trace;

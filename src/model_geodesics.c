@@ -34,11 +34,11 @@
  * * In this function, dl is the length of the step *to* point N;
  *   afterward it is *from* point N onward
  */
-int trace_geodesic(double Xi[NDIM], double Kconi[NDIM], struct of_traj *traj, double eps, int step_max)
+int trace_geodesic(REAL Xi[NDIM], REAL Kconi[NDIM], struct of_traj *traj, REAL eps, int step_max)
 {
   //fprintf(stderr, "Begin trace geodesic");
-  double X[NDIM], Kcon[NDIM];
-  double Xhalf[NDIM], Kconhalf[NDIM];
+  REAL X[NDIM], Kcon[NDIM];
+  REAL Xhalf[NDIM], Kconhalf[NDIM];
 
   // Initialize the running values and save the first step
   // Note "half" values *trail* when integrating away from camera, so they don't
@@ -61,7 +61,7 @@ int trace_geodesic(double Xi[NDIM], double Kconi[NDIM], struct of_traj *traj, do
 
     /* This stepsize function can be troublesome inside of R = 2M,
        and should be used cautiously in this region. */
-    double dl = stepsize(X, Kcon, eps);
+    REAL dl = stepsize(X, Kcon, eps);
 
     /* Geodesics in ipole are integrated using
      * dx^\mu/d\lambda = k^\mu
@@ -85,11 +85,11 @@ int trace_geodesic(double Xi[NDIM], double Kconi[NDIM], struct of_traj *traj, do
     // To print each point (TODO option?)
     // print_vector("X", X);
     // print_vector("Kcon", Kcon);
-    // fprintf(stderr, "dl: %f\n", dl);
-    // double r, th;
+    // fprintf(stderr, "dl: %Lf\n", dl);
+    // REAL r, th;
     // bl_coord(X, &r, &th);
-    // fprintf(stderr, "BL r, th: %g, %g\n", r, th);
-    // double Gcov[NDIM][NDIM];
+    // fprintf(stderr, "BL r, th: %Lg, %Lg\n", r, th);
+    // REAL Gcov[NDIM][NDIM];
     // gcov_func(X, Gcov);
     // print_matrix("Gcov", Gcov);
     // getchar();
@@ -116,13 +116,13 @@ int trace_geodesic(double Xi[NDIM], double Kconi[NDIM], struct of_traj *traj, do
  * This takes the parameters struct directly since most of them are
  * camera parameters anyway
  */
-void init_XK(long int i, long int j, int nx, int ny, double Xcam[NDIM],
-             Params params, double fovx, double fovy,
-             double X[NDIM], double Kcon[NDIM])
+void init_XK(long int i, long int j, int nx, int ny, REAL Xcam[NDIM],
+             Params params, REAL fovx, REAL fovy,
+             REAL X[NDIM], REAL Kcon[NDIM])
 {
-  double Econ[NDIM][NDIM];
-  double Ecov[NDIM][NDIM];
-  double Kcon_tetrad[NDIM];
+  REAL Econ[NDIM][NDIM];
+  REAL Ecov[NDIM][NDIM];
+  REAL Kcon_tetrad[NDIM];
 
   if (params.old_centering) {
     make_camera_tetrad_old(Xcam, Econ, Ecov);
@@ -134,8 +134,8 @@ void init_XK(long int i, long int j, int nx, int ny, double Xcam[NDIM],
   // xoff: allow arbitrary offset for e.g. ML training imgs
   // +0.5: project geodesics from px centers
   // xoff/yoff are separated to keep consistent behavior between refinement levels
-  double dxoff = (i+0.5+params.xoff-0.01)/params.nx - 0.5;
-  double dyoff = (j+0.5+params.yoff)/params.ny - 0.5;
+  REAL dxoff = (i+0.5+params.xoff-0.01)/params.nx - 0.5;
+  REAL dyoff = (j+0.5+params.yoff)/params.ny - 0.5;
   Kcon_tetrad[0] = 0.;
   Kcon_tetrad[1] = (dxoff*cos(params.rotcam) - dyoff*sin(params.rotcam)) * fovx;
   Kcon_tetrad[2] = (dxoff*sin(params.rotcam) + dyoff*cos(params.rotcam)) * fovy;
@@ -156,7 +156,7 @@ void init_XK(long int i, long int j, int nx, int ny, double Xcam[NDIM],
 /* condition for stopping the backwards-in-lambda
    integration of the photon geodesic */
 
-int stop_backward_integration(double X[NDIM], double Xhalf[NDIM], double Kcon[NDIM])
+int stop_backward_integration(REAL X[NDIM], REAL Xhalf[NDIM], REAL Kcon[NDIM])
 {
   // The opaque thin disk adds a stop condidion: we don't bother integrating more than 2 steps
   // beyond the midplane
@@ -166,7 +166,7 @@ int stop_backward_integration(double X[NDIM], double Xhalf[NDIM], double Kcon[ND
 #endif
 
   // Necessary geometric stop conditions
-  double r, th;
+  REAL r, th;
   bl_coord(X, &r, &th);
   if ((r > rmax_geo && Kcon[1] < 0.) || // Stop either beyond rmax_geo
       r < (Rh + 0.0001)) { // Or right near the horizon
@@ -205,27 +205,27 @@ int stop_backward_integration(double X[NDIM], double Xhalf[NDIM], double Kcon[ND
  * TODO this is the geometry step but dictates physics as well.
  * Optionally skip geometry steps near the pole for accuracy
  */
-double stepsize(double X[NDIM], double Kcon[NDIM], double eps)
+REAL stepsize(REAL X[NDIM], REAL Kcon[NDIM], REAL eps)
 {
-  double dl;
-  double deh = fmin(fabs(X[1] - startx[1]), 0.1);
-  double dlx1 = eps * (10*deh) / (fabs(Kcon[1]) + SMALL*SMALL);
+  REAL dl;
+  REAL deh = fmin(fabs(X[1] - startx[1]), 0.1);
+  REAL dlx1 = eps * (10*deh) / (fabs(Kcon[1]) + SMALL*SMALL);
 
   // Make the step cautious near the pole, improving accuracy of Stokes U
-  double cut = 0.02;
-  double lx2 = stopx[2] - startx[2];
-  double dpole = fmin(fabs(X[2] / lx2), fabs((stopx[2] - X[2]) / lx2));
-  double d2fac = (dpole < cut) ? dpole/3 : fmin(cut/3 + (dpole-cut)*10., 1);
-  double dlx2 = eps * d2fac / (fabs(Kcon[2]) + SMALL*SMALL);
+  REAL cut = 0.02;
+  REAL lx2 = stopx[2] - startx[2];
+  REAL dpole = fmin(fabs(X[2] / lx2), fabs((stopx[2] - X[2]) / lx2));
+  REAL d2fac = (dpole < cut) ? dpole/3 : fmin(cut/3 + (dpole-cut)*10., 1);
+  REAL dlx2 = eps * d2fac / (fabs(Kcon[2]) + SMALL*SMALL);
 
-  double dlx3 = eps / (fabs(Kcon[3]) + SMALL*SMALL);
+  REAL dlx3 = eps / (fabs(Kcon[3]) + SMALL*SMALL);
 
   if (STEP_STRICT_MIN) {
     dl = fmin(fmin(dlx1, dlx2), dlx3);
   } else {
-    double idlx1 = 1./(fabs(dlx1) + SMALL*SMALL) ;
-    double idlx2 = 1./(fabs(dlx2) + SMALL*SMALL) ;
-    double idlx3 = 1./(fabs(dlx3) + SMALL*SMALL) ;
+    REAL idlx1 = 1./(fabs(dlx1) + SMALL*SMALL) ;
+    REAL idlx2 = 1./(fabs(dlx2) + SMALL*SMALL) ;
+    REAL idlx3 = 1./(fabs(dlx3) + SMALL*SMALL) ;
 
     dl = 1. / (idlx1 + idlx2 + idlx3) ;
   }

@@ -6,12 +6,12 @@
 /*
  * This is the main photon orbit integrator
  */
-void push_photon (double X[NDIM], double Kcon[NDIM], double dl, double Xhalf[NDIM],
-             double Kconhalf[NDIM])
+void push_photon (REAL X[NDIM], REAL Kcon[NDIM], REAL dl, REAL Xhalf[NDIM],
+             REAL Kconhalf[NDIM])
 {
-  double lconn[NDIM][NDIM][NDIM];
-  double dKcon[NDIM];
-  double Xh[NDIM], Kconh[NDIM];
+  REAL lconn[NDIM][NDIM][NDIM];
+  REAL dKcon[NDIM];
+  REAL Xh[NDIM], Kconh[NDIM];
   int i, j, k;
 
   /* 2nd order: scheme
@@ -64,7 +64,7 @@ void push_photon (double X[NDIM], double Kcon[NDIM], double dl, double Xhalf[NDI
    lower(Kcon, gcov, Kcov);
    E0 = -Kcov[0];
    L0 = Kcov[3];
-   fprintf(stdout,"along g: r=%g E0=%g L0=%g \n",exp(X[1]),E0,L0);
+   fprintf(stdout,"along g: r=%Lg E0=%Lg L0=%Lg \n",exp(X[1]),E0,L0);
    */
   /* done! */
 }

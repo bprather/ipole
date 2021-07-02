@@ -11,9 +11,9 @@ int N1, N2, N3;
  ********************************************************************/
 
 /* return scalar in cgs units */
-double interp_scalar(double X[NDIM], double ***var)
+REAL interp_scalar(REAL X[NDIM], double ***var)
 {
-  double del[NDIM],b1,b2,interp;
+  REAL del[NDIM],b1,b2,interp;
   int i, j, k, ip1, jp1, kp1;
 
   // zone and offset from X
@@ -50,7 +50,7 @@ double interp_scalar(double X[NDIM], double ***var)
 /*
  *  returns geodesic coordinates associated with center of zone i,j,k
  */
-void ijktoX(int i, int j, int k, double X[NDIM])
+void ijktoX(int i, int j, int k, REAL X[NDIM])
 {
   // first do the naive thing
   X[1] = startx[1] + (i+0.5)*dx[1];
@@ -60,17 +60,17 @@ void ijktoX(int i, int j, int k, double X[NDIM])
   // now transform to geodesic coordinates if necessary by first
   // converting to KS and then to destination coordinates (eKS).
   if (use_eKS_internal) {
-      double xKS[4] = { 0 };
+      REAL xKS[4] = { 0 };
     if (metric == METRIC_MKS3) {
-      double x0 = X[0];
-      double x1 = X[1];
-      double x2 = X[2];
-      double x3 = X[3];
+      REAL x0 = X[0];
+      REAL x1 = X[1];
+      REAL x2 = X[2];
+      REAL x3 = X[3];
 
-      double H0 = mks3H0;
-      double MY1 = mks3MY1;
-      double MY2 = mks3MY2;
-      double MP0 = mks3MP0;
+      REAL H0 = mks3H0;
+      REAL MY1 = mks3MY1;
+      REAL MY2 = mks3MY2;
+      REAL MP0 = mks3MP0;
 
       xKS[0] = x0;
       xKS[1] = exp(x1) + mks3R0;
@@ -78,7 +78,7 @@ void ijktoX(int i, int j, int k, double X[NDIM])
       xKS[3] = x3;
     }
 
-    double r, th;
+    REAL r, th;
     bl_coord(X, &r, &th);
     X[0] = xKS[0];
     X[1] = r;
@@ -108,20 +108,20 @@ void ijktoX(int i, int j, int k, double X[NDIM])
  *  F -> ( 1, 0.5)
  *
  */
-void Xtoijk(double X[NDIM], int *i, int *j, int *k, double del[NDIM])
+void Xtoijk(REAL X[NDIM], int *i, int *j, int *k, REAL del[NDIM])
 {
   // unless we're reading from data, i,j,k are the normal expected thing
-  double phi;
-  double XG[4];
+  REAL phi;
+  REAL XG[4];
 
   if (use_eKS_internal) {
     // the geodesics are evolved in eKS so invert through KS -> zone coordinates
-    double r, th;
+    REAL r, th;
     bl_coord(X, &r, &th);
-    double Xks[4] = { X[0], r, th, X[3] };
+    REAL Xks[4] = { X[0], r, th, X[3] };
     if (metric == METRIC_MKS3) {
-      double H0 = mks3H0, MY1 = mks3MY1, MY2 = mks3MY2, MP0 = mks3MP0;
-      double KSx1 = Xks[1], KSx2 = Xks[2];
+      REAL H0 = mks3H0, MY1 = mks3MY1, MY2 = mks3MY2, MP0 = mks3MP0;
+      REAL KSx1 = Xks[1], KSx2 = Xks[2];
       XG[0] = Xks[0];
       XG[1] = log(Xks[1] - mks3R0);
       XG[2] = (-(H0*pow(KSx1,MP0)*M_PI) - pow(2.,1. + MP0)*H0*MY1*M_PI +
@@ -168,21 +168,21 @@ void Xtoijk(double X[NDIM], int *i, int *j, int *k, double del[NDIM])
 
 }
 
-int X_in_domain(double X[NDIM]) {
+int X_in_domain(REAL X[NDIM]) {
   // returns 1 if X is within the computational grid.
   // checks different sets of coordinates depending on
   // specified grid coordinates
 
   if (use_eKS_internal) {
-    double XG[4] = { 0 };
-    double r, th;
+    REAL XG[4] = { 0 };
+    REAL r, th;
     bl_coord(X, &r, &th);
-    double Xks[4] = { X[0], r, th, X[3] };
+    REAL Xks[4] = { X[0], r, th, X[3] };
 
     if (metric == METRIC_MKS3) {
       // if METRIC_MKS3, ignore theta boundaries
-      double H0 = mks3H0, MY1 = mks3MY1, MY2 = mks3MY2, MP0 = mks3MP0;
-      double KSx1 = Xks[1], KSx2 = Xks[2];
+      REAL H0 = mks3H0, MY1 = mks3MY1, MY2 = mks3MY2, MP0 = mks3MP0;
+      REAL KSx1 = Xks[1], KSx2 = Xks[2];
       XG[0] = Xks[0];
       XG[1] = log(Xks[1] - mks3R0);
       XG[2] = (-(H0*pow(KSx1,MP0)*M_PI) - pow(2,1 + MP0)*H0*MY1*M_PI +
@@ -210,11 +210,11 @@ int X_in_domain(double X[NDIM]) {
 /*
  * return the gdet associated with zone coordinates for the zone at i,j,k
  */
-double gdet_zone(int i, int j, int k)
+REAL gdet_zone(int i, int j, int k)
 {
   // get the X for the zone (in geodesic coordinates for bl_coord)
   // and in zone coordinates (for set_dxdX)
-  double X[NDIM], Xzone[NDIM];
+  REAL X[NDIM], Xzone[NDIM];
   ijktoX(i,j,k, X);
   Xzone[0] = 0.;
   Xzone[1] = startx[1] + (i+0.5)*dx[1];
@@ -222,9 +222,9 @@ double gdet_zone(int i, int j, int k)
   Xzone[3] = startx[3] + (k+0.5)*dx[3];
 
   // then get gcov for the zone (in zone coordinates)
-  double gcovKS[NDIM][NDIM], gcov[NDIM][NDIM];
-  double r, th;
-  double dxdX[NDIM][NDIM];
+  REAL gcovKS[NDIM][NDIM], gcov[NDIM][NDIM];
+  REAL r, th;
+  REAL dxdX[NDIM][NDIM];
   MUNULOOP gcovKS[mu][nu] = 0.;
   MUNULOOP gcov[mu][nu] = 0.;
   bl_coord(X, &r, &th);

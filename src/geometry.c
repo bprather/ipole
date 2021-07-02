@@ -18,17 +18,17 @@
  MM 11 July 17
  */
 
-int invert_matrix(double Am[][NDIM], double Aminv[][NDIM]);
-int LU_decompose(double A[][NDIM], int permute[]);
-void LU_substitution(double A[][NDIM], double B[], int permute[]);
+int invert_matrix(REAL Am[][NDIM], REAL Aminv[][NDIM]);
+int LU_decompose(REAL A[][NDIM], int permute[]);
+void LU_substitution(REAL A[][NDIM], REAL B[], int permute[]);
 
 /* assumes gcov has been set first; returns sqrt{|g|} */
-double gdet_func(double gcov[][NDIM])
+REAL gdet_func(REAL gcov[][NDIM])
 {
   int i, j;
   int permute[NDIM];
-  double gcovtmp[NDIM][NDIM];
-  double gdet;
+  REAL gcovtmp[NDIM][NDIM];
+  REAL gdet;
 
   for (i = 0; i < NDIM; i++) {
     for (j = 0; j < NDIM; j++) {
@@ -51,7 +51,7 @@ double gdet_func(double gcov[][NDIM])
 }
 
 /* invert gcov to get gcon */
-int gcon_func(double gcov[][NDIM], double gcon[][NDIM])
+int gcon_func(REAL gcov[][NDIM], REAL gcon[][NDIM])
 {
   int sing = invert_matrix(gcov, gcon);
 #if DEBUG
@@ -63,7 +63,7 @@ int gcon_func(double gcov[][NDIM], double gcon[][NDIM])
   return sing;
 }
 
-inline void flip_index(double ucon[NDIM], double Gcov[NDIM][NDIM], double ucov[NDIM])
+inline void flip_index(REAL ucon[NDIM], REAL Gcov[NDIM][NDIM], REAL ucov[NDIM])
 {
 
     ucov[0] = Gcov[0][0] * ucon[0]
@@ -82,23 +82,41 @@ inline void flip_index(double ucon[NDIM], double Gcov[NDIM][NDIM], double ucov[N
   + Gcov[3][1] * ucon[1]
   + Gcov[3][2] * ucon[2]
   + Gcov[3][3] * ucon[3];
+}
+inline void flip_index_double(double ucon[NDIM], double Gcov[NDIM][NDIM], double ucov[NDIM])
+{
 
-    return;
+    ucov[0] = Gcov[0][0] * ucon[0]
+  + Gcov[0][1] * ucon[1]
+  + Gcov[0][2] * ucon[2]
+  + Gcov[0][3] * ucon[3];
+    ucov[1] = Gcov[1][0] * ucon[0]
+  + Gcov[1][1] * ucon[1]
+  + Gcov[1][2] * ucon[2]
+  + Gcov[1][3] * ucon[3];
+    ucov[2] = Gcov[2][0] * ucon[0]
+  + Gcov[2][1] * ucon[1]
+  + Gcov[2][2] * ucon[2]
+  + Gcov[2][3] * ucon[3];
+    ucov[3] = Gcov[3][0] * ucon[0]
+  + Gcov[3][1] * ucon[1]
+  + Gcov[3][2] * ucon[2]
+  + Gcov[3][3] * ucon[3];
 }
 
 /* generic connection routine, using numerical derivatives */
 /* Sets the spatial discretization in numerical derivatives : */
 #define DEL 1.e-7
 
-void get_connection(double X[NDIM], double conn[NDIM][NDIM][NDIM])
+void get_connection(REAL X[NDIM], REAL conn[NDIM][NDIM][NDIM])
 {
   int i, j, k, l;
-  double tmp[NDIM][NDIM][NDIM];
-  double Xh[NDIM], Xl[NDIM];
-  double gcon[NDIM][NDIM];
-  double gcov[NDIM][NDIM];
-  double gh[NDIM][NDIM];
-  double gl[NDIM][NDIM];
+  REAL tmp[NDIM][NDIM][NDIM];
+  REAL Xh[NDIM], Xl[NDIM];
+  REAL gcon[NDIM][NDIM];
+  REAL gcov[NDIM][NDIM];
+  REAL gh[NDIM][NDIM];
+  REAL gl[NDIM][NDIM];
 
   gcov_func(X, gcov);
   if(gcon_func(gcov, gcon)) {
@@ -148,10 +166,10 @@ void get_connection(double X[NDIM], double conn[NDIM][NDIM][NDIM])
  * Normalize input vector so that |v . v| = 1
  * Overwrites input
  */
-void normalize(double vcon[NDIM], double Gcov[NDIM][NDIM])
+void normalize(REAL vcon[NDIM], REAL Gcov[NDIM][NDIM])
 {
   int k, l;
-  double norm;
+  REAL norm;
 
   norm = 0.;
   for (k = 0; k < 4; k++)
@@ -166,9 +184,9 @@ void normalize(double vcon[NDIM], double Gcov[NDIM][NDIM])
 }
 
 /* normalize null vector in a tetrad frame */
-void null_normalize(double Kcon[NDIM], double fnorm)
+void null_normalize(REAL Kcon[NDIM], REAL fnorm)
 {
-  double inorm;
+  REAL inorm;
 
   inorm =
     sqrt(Kcon[1] * Kcon[1] + Kcon[2] * Kcon[2] + Kcon[3] * Kcon[3]);
@@ -211,9 +229,9 @@ int levi_civita(int i, int j, int k, int l)
 }
 
 // Coordinate functions not dependent on system
-double theta_func(double X[NDIM])
+REAL theta_func(REAL X[NDIM])
 {
-  double r, th;
+  REAL r, th;
   bl_coord(X, &r, &th);
   return th;
 }
@@ -228,13 +246,13 @@ double theta_func(double X[NDIM])
 
  Returns (1) if a singular matrix is found,  (0) otherwise.
  */
-int invert_matrix(double Am[][NDIM], double Aminv[][NDIM])
+int invert_matrix(REAL Am[][NDIM], REAL Aminv[][NDIM])
 {
 
   int i, j;
   int n = NDIM;
   int permute[NDIM];
-  double dxm[NDIM], Amtmp[NDIM][NDIM];
+  REAL dxm[NDIM], Amtmp[NDIM][NDIM];
 
   for (i = 0; i < NDIM; i++)
     for (j = 0; j < NDIM; j++) {
@@ -280,14 +298,14 @@ int invert_matrix(double Am[][NDIM], double Aminv[][NDIM])
 
  Returns (1) if a singular matrix is found,  (0) otherwise.
 */
-int LU_decompose(double A[][NDIM], int permute[])
+int LU_decompose(REAL A[][NDIM], int permute[])
 {
 
-  const double absmin = 1.e-30; /* Value used instead of 0 for singular matrices */
+  const REAL absmin = 1.e-30; /* Value used instead of 0 for singular matrices */
 
-  //static double row_norm[NDIM];
-  double row_norm[NDIM];
-  double absmax, maxtemp;
+  //static REAL row_norm[NDIM];
+  REAL row_norm[NDIM];
+  REAL absmax, maxtemp;
 
   int i, j, k, max_row;
   int n = NDIM;
@@ -447,11 +465,11 @@ int LU_decompose(double A[][NDIM], int permute[])
 
  Upon exit, B[] contains the solution x[], A[][] is left unchanged.
 */
-void LU_substitution(double A[][NDIM], double B[], int permute[])
+void LU_substitution(REAL A[][NDIM], REAL B[], int permute[])
 {
   int i, j;
   int n = NDIM;
-  double tmpvar;
+  REAL tmpvar;
 
   /* Perform the forward substitution using the LU matrix.
    */

@@ -3,7 +3,7 @@
 
 #include "decs.h"
 
-void push_photon(double X[NDIM], double Kcon[NDIM], double dl, double Xhalf[NDIM],
-                 double Kconhalf[NDIM]);
+void push_photon(REAL X[NDIM], REAL Kcon[NDIM], REAL dl, REAL Xhalf[NDIM],
+                 REAL Kconhalf[NDIM]);
 
 #endif // GEODESICS_H

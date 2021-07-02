@@ -10,12 +10,12 @@
 
 #include "decs.h"
 
-void coordinate_to_tetrad(double Ecov[NDIM][NDIM], double K[NDIM],
-                      double K_tetrad[NDIM]);
-void tetrad_to_coordinate(double Ecov[NDIM][NDIM], double K_tetrad[NDIM],
-                      double K[NDIM]);
-void set_Econ_from_trial(double Econ[4], int defdir, double trial[4]);
-int check_handedness(double Econ[NDIM][NDIM], double Gcov[NDIM][NDIM], double *dot);
-void project_out(double vcona[NDIM], double vconb[NDIM], double Gcov[4][4]);
+void coordinate_to_tetrad(REAL Ecov[NDIM][NDIM], REAL K[NDIM],
+                      REAL K_tetrad[NDIM]);
+void tetrad_to_coordinate(REAL Ecov[NDIM][NDIM], REAL K_tetrad[NDIM],
+                      REAL K[NDIM]);
+void set_Econ_from_trial(REAL Econ[4], int defdir, REAL trial[4]);
+int check_handedness(REAL Econ[NDIM][NDIM], REAL Gcov[NDIM][NDIM], REAL *dot);
+void project_out(REAL vcona[NDIM], REAL vconb[NDIM], REAL Gcov[4][4]);
 
 #endif /* TETRADS_H */

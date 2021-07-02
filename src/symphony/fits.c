@@ -20,19 +20,19 @@
  *@returns: the corresponding fitting formula (based on the distribution
  *          function) evaluated for the input parameters.
 */
-double j_nu_fit(double nu,
-                double magnetic_field,
-                double electron_density,
-                double observer_angle,
+REAL j_nu_fit(REAL nu,
+                REAL magnetic_field,
+                REAL electron_density,
+                REAL observer_angle,
                 int distribution,
                 int polarization,
-                double theta_e,
-                double power_law_p,
-                double gamma_min,
-                double gamma_max,
-                double gamma_cutoff,
-                double kappa,
-                double kappa_width)
+                REAL theta_e,
+                REAL power_law_p,
+                REAL gamma_min,
+                REAL gamma_max,
+                REAL gamma_cutoff,
+                REAL kappa,
+                REAL kappa_width)
 {
 /*fill the struct with values*/
   struct parameters params;
@@ -98,19 +98,19 @@ double j_nu_fit(double nu,
  *          function) evaluated for the input parameters.
 */
 
-double alpha_nu_fit(double nu,
-                    double magnetic_field,
-                    double electron_density,
-                    double observer_angle,
+REAL alpha_nu_fit(REAL nu,
+                    REAL magnetic_field,
+                    REAL electron_density,
+                    REAL observer_angle,
                     int distribution,
                     int polarization,
-                    double theta_e,
-                    double power_law_p,
-                    double gamma_min,
-                    double gamma_max,
-                    double gamma_cutoff,
-                    double kappa,
-                    double kappa_width)
+                    REAL theta_e,
+                    REAL power_law_p,
+                    REAL gamma_min,
+                    REAL gamma_max,
+                    REAL gamma_cutoff,
+                    REAL kappa,
+                    REAL kappa_width)
 {
 /*fill the struct with values*/
   struct parameters params;
@@ -169,19 +169,19 @@ double alpha_nu_fit(double nu,
  *          (based on the distribution function) evaluated for 
  *          the input parameters.
  */
-double rho_nu_fit(double nu,
-                  double magnetic_field,
-                  double electron_density,
-                  double observer_angle,
+REAL rho_nu_fit(REAL nu,
+                  REAL magnetic_field,
+                  REAL electron_density,
+                  REAL observer_angle,
                   int distribution,
                   int polarization,
-                  double theta_e,
-                  double power_law_p,
-                  double gamma_min,
-                  double gamma_max,
-                  double gamma_cutoff,
-                  double kappa,
-                  double kappa_width)
+                  REAL theta_e,
+                  REAL power_law_p,
+                  REAL gamma_min,
+                  REAL gamma_max,
+                  REAL gamma_cutoff,
+                  REAL kappa,
+                  REAL kappa_width)
 {
 /*fill the struct with values*/
   struct parameters params;
@@ -243,10 +243,10 @@ double rho_nu_fit(double nu,
  *@returns: prints error messages or quits if disallowed values
  *          (such as magnitude of magnetic field < 0) are entered.
  */
-double check_for_errors(struct parameters * params)
+REAL check_for_errors(struct parameters * params)
 {
 
-  double nu_c = get_nu_c(*params);
+  REAL nu_c = get_nu_c(*params);
 
   /* catch potential errors */
   if(params->nu/nu_c > 3e10 && 

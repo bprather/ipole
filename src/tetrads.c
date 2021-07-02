@@ -7,8 +7,8 @@
 #include "geometry.h"
 
 /* input and vectors are contravariant (index up) */
-void coordinate_to_tetrad(double Ecov[NDIM][NDIM], double K[NDIM],
-                          double K_tetrad[NDIM])
+void coordinate_to_tetrad(REAL Ecov[NDIM][NDIM], REAL K[NDIM],
+                          REAL K_tetrad[NDIM])
 {
   int k;
 
@@ -19,8 +19,8 @@ void coordinate_to_tetrad(double Ecov[NDIM][NDIM], double K[NDIM],
 }
 
 /* input and vectors are contravariant (index up) */
-void tetrad_to_coordinate(double Econ[NDIM][NDIM], double K_tetrad[NDIM],
-                          double K[NDIM])
+void tetrad_to_coordinate(REAL Econ[NDIM][NDIM], REAL K_tetrad[NDIM],
+                          REAL K[NDIM])
 {
   int l;
 
@@ -37,9 +37,9 @@ void tetrad_to_coordinate(double Econ[NDIM][NDIM], double K_tetrad[NDIM],
  * checking to see if it is null, and if it is null
  * setting to some default value
  */
-void set_Econ_from_trial(double Econ[4], int defdir, double trial[4])
+void set_Econ_from_trial(REAL Econ[4], int defdir, REAL trial[4])
 {
-  double norm = 0.;
+  REAL norm = 0.;
   int k;
 
   for (k = 1; k < 4; k++)
@@ -61,11 +61,11 @@ void set_Econ_from_trial(double Econ[4], int defdir, double trial[4])
  * experience suggests that roundoff produces errors of
  * order 10^{-12} in the result.
  */
-int check_handedness(double Econ[NDIM][NDIM], double Gcov[NDIM][NDIM], double *dot)
+int check_handedness(REAL Econ[NDIM][NDIM], REAL Gcov[NDIM][NDIM], REAL *dot)
 {
   int i, j, k, l;
 
-  double g = gdet_func(Gcov);
+  REAL g = gdet_func(Gcov);
   if(g < 0.) {
 #if DEBUG
     fprintf(stderr, "\nEncountered singular gcov checking handedness!\n");
@@ -92,10 +92,10 @@ int check_handedness(double Econ[NDIM][NDIM], double Gcov[NDIM][NDIM], double *d
  * covariant metric is third argument.
  * overwrite the first argument on return
  */
-void project_out(double vcona[NDIM], double vconb[NDIM], double Gcov[4][4])
+void project_out(REAL vcona[NDIM], REAL vconb[NDIM], REAL Gcov[4][4])
 {
 
-  double adotb, vconb_sq;
+  REAL adotb, vconb_sq;
   int k, l;
 
   vconb_sq = 0.;

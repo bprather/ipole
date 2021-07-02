@@ -24,7 +24,7 @@ lams = CL/nus/100. # cm -> m
 chis = np.zeros(len(nus))
 for n, freq in enumerate(nus):
   print '\n\n\n%i' % n
-  print 'freq = %e' % freq
+  print 'freq = %Le' % freq
   call(['./ipole', str(theta), str(freq), dfnam, '1', '1', '1', '0'])
   i0, j0, x, y, Ia, Is, Qs, Us, Vs, tauF = np.loadtxt('ipole.dat', unpack=True,
     skiprows=1)
@@ -35,12 +35,12 @@ for n, freq in enumerate(nus):
   print N
   print Q
   print U
-  print 'I = %e' % sum(Is)
+  print 'I = %Le' % sum(Is)
   chis[n] = 0.5*np.arctan(U/Q)
 
 RM = np.polyfit(lams**2, chis, 1)[0]
 print 'N = %d' % N
-print 'RM = %g rad m^-2' % RM
+print 'RM = %Lg rad m^-2' % RM
 print (lams**2)
 print chis
 

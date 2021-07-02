@@ -10,21 +10,22 @@
 
 #include "decs.h"
 
-int gcon_func(double gcov[][NDIM], double gcon[][NDIM]);
-double gdet_func(double gcov[][NDIM]);
-void get_connection(double *X, double lconn[][NDIM][NDIM]);
+int gcon_func(REAL gcov[][NDIM], REAL gcon[][NDIM]);
+REAL gdet_func(REAL gcov[][NDIM]);
+void get_connection(REAL *X, REAL lconn[][NDIM][NDIM]);
 
-void flip_index(double *ucon, double Gcov[NDIM][NDIM], double *ucov);
+void flip_index(REAL *ucon, REAL Gcov[NDIM][NDIM], REAL *ucov);
+void flip_index_double(double *ucon, double Gcov[NDIM][NDIM], double *ucov);
 // Old names aliased
-inline void lower(double *ucon, double Gcov[NDIM][NDIM], double *ucov) {flip_index(ucon, Gcov, ucov);};
-inline void raise(double *ucov, double Gcon[NDIM][NDIM], double *ucon) {flip_index(ucov, Gcon, ucon);};
+inline void lower(REAL *ucon, REAL Gcov[NDIM][NDIM], REAL *ucov) {flip_index(ucon, Gcov, ucov);};
+inline void raise(REAL *ucov, REAL Gcon[NDIM][NDIM], REAL *ucon) {flip_index(ucov, Gcon, ucon);};
 
-void null_normalize(double Kcon[NDIM], double fnorm);
-void normalize(double *vcon, double gcov[][NDIM]);
+void null_normalize(REAL Kcon[NDIM], REAL fnorm);
+void normalize(REAL *vcon, REAL gcov[][NDIM]);
 
 
-int invert_matrix(double Am[][NDIM], double Aminv[][NDIM]);
-double theta_func(double X[NDIM]);
+int invert_matrix(REAL Am[][NDIM], REAL Aminv[][NDIM]);
+REAL theta_func(REAL X[NDIM]);
 int levi_civita(int i, int j, int k, int l);
 
 #endif /* GEOMETRY_H */

@@ -213,7 +213,7 @@ void set_by_word_val(const char *word, const char *value, const char *key, void 
       sscanf(value, "%d", (int *)val);
       break;
     case TYPE_DBL:
-      sscanf(value, "%lf", (double *)val);
+      sscanf(value, "%lf", (REAL *)val);
       break;
     case TYPE_STR:
       sscanf(value, "%s", (char *)val);

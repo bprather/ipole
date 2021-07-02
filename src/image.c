@@ -5,8 +5,8 @@
 
 int compare_doubles(const void *a, const void *b)
 {
-  const double *da = (const double*) a;
-  const double *db = (const double*) b;
+  const REAL *da = (const REAL*) a;
+  const REAL *db = (const REAL*) b;
 
   return (*da > *db) - (*da < *db);
 }
@@ -14,12 +14,12 @@ int compare_doubles(const void *a, const void *b)
 #define TOP_FRAC	(0.005)	/* Brightest and dimmest pixels cut out of color scale */
 #define BOT_FRAC	(0.005)
 
-void make_ppm(double p[], int nx, int ny, double freq, char filename[])
+void make_ppm(REAL p[], int nx, int ny, REAL freq, char filename[])
 {
-  double q[nx*ny];
+  REAL q[nx*ny];
 
   int i, j, k;
-  double min, max;
+  REAL min, max;
   FILE *fp;
 
   k = 0;
@@ -30,7 +30,7 @@ void make_ppm(double p[], int nx, int ny, double freq, char filename[])
     }
 
   int npixels = nx * ny;
-  qsort(q, npixels, sizeof(double), compare_doubles);
+  qsort(q, npixels, sizeof(REAL), compare_doubles);
   if (q[0] < 0) { /* must be log scaling */
     min = q[(int) (npixels * BOT_FRAC)];
   } else {
@@ -47,7 +47,7 @@ void make_ppm(double p[], int nx, int ny, double freq, char filename[])
   }
 
   /* write out header information */
-  fprintf(fp, "P6\n#  min=%g  , max=%g \n#  frequency=%g \n%d %d\n%d\n", min,
+  fprintf(fp, "P6\n#  min=%Lg  , max=%Lg \n#  frequency=%Lg \n%d %d\n%d\n", min,
           max, freq, nx, ny, 255);
   fflush(fp);
 
@@ -77,12 +77,12 @@ void make_ppm(double p[], int nx, int ny, double freq, char filename[])
  author: Bryan M. Johnson
  */
 
-void rainbow_palette(double data, double min, double max, int *pRed,
+void rainbow_palette(REAL data, REAL min, REAL max, int *pRed,
                      int *pGreen, int *pBlue)
 {
-  double a, b, c, d, e, f;
-  double x, y;
-  double max_min = max - min;
+  REAL a, b, c, d, e, f;
+  REAL x, y;
+  REAL max_min = max - min;
 
   if (max_min > 0.0) { // trust no one
     x = (data - min) / (max_min);

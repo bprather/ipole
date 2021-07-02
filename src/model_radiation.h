@@ -12,11 +12,11 @@
 #include "par.h"
 
 /* transfer coefficients in tetrad frame */
-void jar_calc(double X[NDIM], double Kcon[NDIM], double *jI, double *jQ,
-              double *jU, double *jV, double *aI, double *aQ, double *aU,
-              double *aV, double *rQ, double *rU, double *rV, Params *params);
+void jar_calc(REAL X[NDIM], REAL Kcon[NDIM], REAL *jI, REAL *jQ,
+              REAL *jU, REAL *jV, REAL *aI, REAL *aQ, REAL *aU,
+              REAL *aV, REAL *rQ, REAL *rU, REAL *rV, Params *params);
 
-double jnu_synch(double nu, double Ne, double Thetae, double B, double theta);
-void get_jkinv(double X[NDIM], double Kcon[NDIM], double *jnuinv, double *knuinv, Params *params);
+REAL jnu_synch(REAL nu, REAL Ne, REAL Thetae, REAL B, REAL theta);
+void get_jkinv(REAL X[NDIM], REAL Kcon[NDIM], REAL *jnuinv, REAL *knuinv, Params *params);
 
 #endif /* MODEL_RADIATION_H */

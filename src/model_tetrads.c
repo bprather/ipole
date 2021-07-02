@@ -32,9 +32,9 @@
  * Returns flag for whether the tetrad is suspicious.
  * Ideally ipole should crash on these errors but there are a lot of corner cases...
  */
-int make_plasma_tetrad(double Ucon[NDIM], double Kcon[NDIM], double Bcon[NDIM],
-                        double Gcov[NDIM][NDIM], double Econ[NDIM][NDIM],
-                        double Ecov[NDIM][NDIM])
+int make_plasma_tetrad(REAL Ucon[NDIM], REAL Kcon[NDIM], REAL Bcon[NDIM],
+                        REAL Gcov[NDIM][NDIM], REAL Econ[NDIM][NDIM],
+                        REAL Ecov[NDIM][NDIM])
 {
   // start w/ time component parallel to U
   set_Econ_from_trial(Econ[0], 0, Ucon);
@@ -75,7 +75,7 @@ int make_plasma_tetrad(double Ucon[NDIM], double Kcon[NDIM], double Bcon[NDIM],
   int oddflag = 0;
 
   /* check handedness */
-  double dot;
+  REAL dot;
   if (check_handedness(Econ, Gcov, &dot)) {
     oddflag |= 16;
   }
@@ -126,13 +126,13 @@ int make_plasma_tetrad(double Ucon[NDIM], double Kcon[NDIM], double Bcon[NDIM],
  * Points the camera so that the angular momentum k_{th,phi} at FOV center is 0
  */
 
-int make_camera_tetrad(double X[NDIM], double Econ[NDIM][NDIM],
-                        double Ecov[NDIM][NDIM])
+int make_camera_tetrad(REAL X[NDIM], REAL Econ[NDIM][NDIM],
+                        REAL Ecov[NDIM][NDIM])
 {
-  double Gcov[NDIM][NDIM], Gcon[NDIM][NDIM];
+  REAL Gcov[NDIM][NDIM], Gcon[NDIM][NDIM];
   gcov_func(X, Gcov);
   gcon_func(Gcov, Gcon);
-  double Ucam[NDIM], Kcon[NDIM], trial[NDIM];
+  REAL Ucam[NDIM], Kcon[NDIM], trial[NDIM];
 
   // center the camera according to impact parameter, i.e., make it
   // so that Kcontetrad = ( 1, 0, 0, 1 ) corresponds to an outgoing
@@ -192,13 +192,13 @@ int make_camera_tetrad(double X[NDIM], double Econ[NDIM][NDIM],
  * Points the camera so that the *contravariant wavevector* k^{th,phi} = 0
  */
 
-int make_camera_tetrad_old(double X[NDIM], double Econ[NDIM][NDIM],
-                        double Ecov[NDIM][NDIM])
+int make_camera_tetrad_old(REAL X[NDIM], REAL Econ[NDIM][NDIM],
+                        REAL Ecov[NDIM][NDIM])
 {
-  double Gcov[NDIM][NDIM], Gcon[NDIM][NDIM];
+  REAL Gcov[NDIM][NDIM], Gcon[NDIM][NDIM];
   gcov_func(X, Gcov);
   gcon_func(Gcov, Gcon);
-  double Ucam[NDIM], Kcon[NDIM], trial[NDIM];
+  REAL Ucam[NDIM], Kcon[NDIM], trial[NDIM];
 
   // old centering method
 

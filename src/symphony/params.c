@@ -52,13 +52,13 @@ void setConstParams(struct parameters *params)
  *@params:  struct parameters params, contains parameters mentioned above
  *@returns: cyclotron frequency, nu_c, for the provided parameters
  */
-double get_nu_c(struct parameters params)
+REAL get_nu_c(struct parameters params)
 {
   return  (params.electron_charge * params.magnetic_field)
         / (2. * params.pi * params.mass_electron * params.speed_light);
 }
 
-double get_omega_p(struct parameters params)
+REAL get_omega_p(struct parameters params)
 {
   return sqrt(params.electron_density * params.electron_charge
               * params.electron_charge 

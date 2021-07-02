@@ -41,40 +41,40 @@
 #define E_UNPOL         15
 
 // Declarations of local fitting functions, for Dexter fits and old rotativities
-void dexter_j_fit_thermal(double Ne, double nu, double Thetae, double B, double theta,
-                    double *jI, double *jQ, double *jU, double *jV);
-void shcherbakov_rho_fit(double Ne, double nu, double Thetae, double B, double theta,
-                    double *rQ, double *rU, double *rV);
-void piecewise_rho_fit(double Ne, double nu, double Thetae, double B, double theta,
-                    double *rQ, double *rU, double *rV);
-void old_rho_fit(double Ne, double nu, double Thetae, double B, double theta,
-                    double *rQ, double *rU, double *rV);
+void dexter_j_fit_thermal(REAL Ne, REAL nu, REAL Thetae, REAL B, REAL theta,
+                    REAL *jI, REAL *jQ, REAL *jU, REAL *jV);
+void shcherbakov_rho_fit(REAL Ne, REAL nu, REAL Thetae, REAL B, REAL theta,
+                    REAL *rQ, REAL *rU, REAL *rV);
+void piecewise_rho_fit(REAL Ne, REAL nu, REAL Thetae, REAL B, REAL theta,
+                    REAL *rQ, REAL *rU, REAL *rV);
+void old_rho_fit(REAL Ne, REAL nu, REAL Thetae, REAL B, REAL theta,
+                    REAL *rQ, REAL *rU, REAL *rV);
 
 // Thermal plasma emissivity, absorptivity and Faraday conversion and rotation
-double g(double Xe);
-double h(double Xe);
-double Je(double Xe);
-double jffunc(double Xe);
-double I_I(double x);
-double I_Q(double x);
-double I_V(double x);
-double besselk_asym(int n, double x);
+REAL g(REAL Xe);
+REAL h(REAL Xe);
+REAL Je(REAL Xe);
+REAL jffunc(REAL Xe);
+REAL I_I(REAL x);
+REAL I_Q(REAL x);
+REAL I_V(REAL x);
+REAL besselk_asym(int n, REAL x);
 
 /* Get coeffs from a specific distribution */
-void jar_calc_dist(int dist, double X[NDIM], double Kcon[NDIM],
-    double *jI, double *jQ, double *jU, double *jV,
-    double *aI, double *aQ, double *aU, double *aV,
-    double *rQ, double *rU, double *rV);
+void jar_calc_dist(int dist, REAL X[NDIM], REAL Kcon[NDIM],
+    REAL *jI, REAL *jQ, REAL *jU, REAL *jV,
+    REAL *aI, REAL *aQ, REAL *aU, REAL *aV,
+    REAL *rQ, REAL *rU, REAL *rV);
 
 /**
  * Wrapper to call different distributions at different places in the simulation domain
  * See jar_calc_dist for distributions
  * TODO put the general emission zero criteria here
  */
-void jar_calc(double X[NDIM], double Kcon[NDIM],
-    double *jI, double *jQ, double *jU, double *jV,
-    double *aI, double *aQ, double *aU, double *aV,
-    double *rQ, double *rU, double *rV, Params *params)
+void jar_calc(REAL X[NDIM], REAL Kcon[NDIM],
+    REAL *jI, REAL *jQ, REAL *jU, REAL *jV,
+    REAL *aI, REAL *aQ, REAL *aU, REAL *aV,
+    REAL *rQ, REAL *rU, REAL *rV, Params *params)
 {
 #if INTEGRATOR_TEST
   jar_calc_dist(E_CUSTOM, X, Kcon, jI, jQ, jU, jV, aI, aQ, aU, aV, rQ, rU, rV);
@@ -122,22 +122,22 @@ void jar_calc(double X[NDIM], double Kcon[NDIM],
  * 12. Emulate the old ipole temporary fix, with Dexter 2016 emissivities and rotativities patched into the constant limit
  * 
  */
-void jar_calc_dist(int dist, double X[NDIM], double Kcon[NDIM],
-    double *jI, double *jQ, double *jU, double *jV,
-    double *aI, double *aQ, double *aU, double *aV,
-    double *rQ, double *rU, double *rV)
+void jar_calc_dist(int dist, REAL X[NDIM], REAL Kcon[NDIM],
+    REAL *jI, REAL *jQ, REAL *jU, REAL *jV,
+    REAL *aI, REAL *aQ, REAL *aU, REAL *aV,
+    REAL *rQ, REAL *rU, REAL *rV)
 {
   // Four-vectors needed for most calculations
-  double Ucon[NDIM], Ucov[NDIM], Bcon[NDIM], Bcov[NDIM];
+  REAL Ucon[NDIM], Ucov[NDIM], Bcon[NDIM], Bcov[NDIM];
   // Common parameters
-  double nu = 0, Ne = 0, B = 0, theta = 0;
+  REAL nu = 0, Ne = 0, B = 0, theta = 0;
   // Other parameters are filled as needed
   // Thermal:
-  double Thetae = 0;
+  REAL Thetae = 0;
   // Powerlaw:
-  double powerlaw_p = 0, gamma_min = 0, gamma_max = 0, gamma_cut = 0;
+  REAL powerlaw_p = 0, gamma_min = 0, gamma_max = 0, gamma_cut = 0;
   // Kappa:
-  double kappa = 0, kappa_width = 0;
+  REAL kappa = 0, kappa_width = 0;
   // Symphony parameters struct, not to be confused with ipole Params
   struct parameters paramsM; int fit = 0;
 
@@ -160,16 +160,16 @@ void jar_calc_dist(int dist, double X[NDIM], double Kcon[NDIM],
   get_model_fourv(X, Kcon, Ucon, Ucov, Bcon, Bcov);
 #if DEBUG
   if (isnan(Ucov[0])) {
-    void Xtoijk(double X[NDIM], int *i, int *j, int *k, double del[NDIM]);
+    void Xtoijk(REAL X[NDIM], int *i, int *j, int *k, REAL del[NDIM]);
     int i,j,k;
-    double del[4];
+    REAL del[4];
     Xtoijk(X, &i,&j,&k, del);
     fprintf(stderr, "UCOV[0] (%d,%d,%d) is nan! thread = %i\n", i,j,k, omp_get_thread_num());
     print_vector("Ucon", Ucon);
     print_vector("Ucov", Ucov);
-    fprintf(stderr, "X[] = %e %e %e %e\n", X[0],X[1],X[2],X[3]);
-    fprintf(stderr, "K[] = %e %e %e %e\n", Kcon[0],Kcon[1],Kcon[2],Kcon[3]);
-    fprintf(stderr, "Ne = %e\n", Ne);
+    fprintf(stderr, "X[] = %Le %Le %Le %Le\n", X[0],X[1],X[2],X[3]);
+    fprintf(stderr, "K[] = %Le %Le %Le %Le\n", Kcon[0],Kcon[1],Kcon[2],Kcon[3]);
+    fprintf(stderr, "Ne = %Le\n", Ne);
   }
 #endif
 
@@ -220,7 +220,7 @@ void jar_calc_dist(int dist, double X[NDIM], double Kcon[NDIM],
       *jV = j_nu_fit(nu, B, Ne, theta, fit, paramsM.STOKES_V, Thetae, powerlaw_p, gamma_min, gamma_max, gamma_cut, kappa, kappa_width);
     }
     // Make invariant
-    double nusq = nu*nu;
+    REAL nusq = nu*nu;
     *jI /= nusq;
     *jQ /= nusq;
     *jU /= nusq;
@@ -230,7 +230,7 @@ void jar_calc_dist(int dist, double X[NDIM], double Kcon[NDIM],
     if (dist == E_THERMAL || dist == E_DEXTER_THERMAL || dist > 10) { // Thermal distributions
       // Get absorptivities via Kirchoff's law
       // Already invariant
-      double Bnuinv = Bnu_inv(nu, Thetae); // Planck function
+      REAL Bnuinv = Bnu_inv(nu, Thetae); // Planck function
       *aI = *jI / Bnuinv;
       *aQ = *jQ / Bnuinv;
       *aU = *jU / Bnuinv;
@@ -277,10 +277,10 @@ void jar_calc_dist(int dist, double X[NDIM], double Kcon[NDIM],
 #if DEBUG
   // Spot check for NaN coefficients
   if (isnan(*rV) || *rV > 1.e100 || *rV < -1.e100) {
-    fprintf(stderr, "\nNAN RV! rV = %e nu = %e Ne = %e Thetae = %e\n", *rV, nu, Ne, Thetae);
+    fprintf(stderr, "\nNAN RV! rV = %Le nu = %Le Ne = %Le Thetae = %Le\n", *rV, nu, Ne, Thetae);
   }
   if (isnan(*jV) || *jV > 1.e100 || *jV < -1.e100) {
-    fprintf(stderr, "\nNAN jV! jV = %e nu = %e Ne = %e Thetae = %e B = %e theta = %e\n", *jV, nu, Ne, Thetae, B, theta);
+    fprintf(stderr, "\nNAN jV! jV = %Le nu = %Le Ne = %Le Thetae = %Le B = %Le theta = %Le\n", *jV, nu, Ne, Thetae, B, theta);
   }
 #endif
 }
@@ -290,12 +290,12 @@ void jar_calc_dist(int dist, double X[NDIM], double Kcon[NDIM],
  * from J. Dexter PhD thesis (checked with Leung harmony program, and Huang & Shcherbakov 2011
  * Also see Dexter 2016 Appendix A1
  */
-void dexter_j_fit_thermal(double Ne, double nu, double Thetae, double B, double theta,
-                    double *jI, double *jQ, double *jU, double *jV)
+void dexter_j_fit_thermal(REAL Ne, REAL nu, REAL Thetae, REAL B, REAL theta,
+                    REAL *jI, REAL *jQ, REAL *jU, REAL *jV)
 {
   // Synchrotron emissivity
-  double nus = 3.0 * EE * B * sin(theta) / 4.0 / M_PI / ME / CL * Thetae * Thetae + 1.0;
-  double x = nu / nus;
+  REAL nus = 3.0 * EE * B * sin(theta) / 4.0 / M_PI / ME / CL * Thetae * Thetae + 1.0;
+  REAL x = nu / nus;
 
   *jI = Ne * EE * EE * nu / 2. / sqrt(3) / CL / Thetae / Thetae * I_I(x); // [g/s^2/cm = ergs/s/cm^3]
   *jQ = Ne * EE * EE * nu / 2. / sqrt(3) / CL / Thetae / Thetae * I_Q(x);
@@ -303,16 +303,16 @@ void dexter_j_fit_thermal(double Ne, double nu, double Thetae, double B, double 
   *jV = 2. * Ne * EE * EE * nu / tan(theta) / 3. / sqrt(3) / CL / Thetae / Thetae / Thetae * I_V(x);
 }
 
-void shcherbakov_rho_fit(double Ne, double nu, double Thetae, double B, double theta,
-                    double *rQ, double *rU, double *rV)
+void shcherbakov_rho_fit(REAL Ne, REAL nu, REAL Thetae, REAL B, REAL theta,
+                    REAL *rQ, REAL *rU, REAL *rV)
 {
-  double Thetaer = 1. / Thetae;
+  REAL Thetaer = 1. / Thetae;
 
-  double omega0 = EE * B / ME / CL;
-  double wp2 = 4. * M_PI * Ne * EE * EE / ME;
+  REAL omega0 = EE * B / ME / CL;
+  REAL wp2 = 4. * M_PI * Ne * EE * EE / ME;
 
   // Faraday rotativities for thermal plasma
-  double Xe = Thetae * sqrt(sqrt(2) * sin(theta) * (1.e3 * omega0 / 2. / M_PI / nu));
+  REAL Xe = Thetae * sqrt(sqrt(2) * sin(theta) * (1.e3 * omega0 / 2. / M_PI / nu));
 
   // These are the Dexter (2016) fit actually
   *rQ = 2. * M_PI * nu / 2. / CL * wp2 * omega0 * omega0 / pow(2 * M_PI * nu, 4) *
@@ -326,16 +326,16 @@ void shcherbakov_rho_fit(double Ne, double nu, double Thetae, double B, double t
         gsl_sf_bessel_Kn(0, Thetaer) / (gsl_sf_bessel_Kn(2, Thetaer)+SMALL) * g(Xe) * cos(theta);
 }
 
-void piecewise_rho_fit(double Ne, double nu, double Thetae, double B, double theta,
-                    double *rQ, double *rU, double *rV)
+void piecewise_rho_fit(REAL Ne, REAL nu, REAL Thetae, REAL B, REAL theta,
+                    REAL *rQ, REAL *rU, REAL *rV)
 {
-  double Thetaer = 1. / Thetae;
+  REAL Thetaer = 1. / Thetae;
 
-  double omega0 = EE * B / ME / CL;
-  double wp2 = 4. * M_PI * Ne * EE * EE / ME;
+  REAL omega0 = EE * B / ME / CL;
+  REAL wp2 = 4. * M_PI * Ne * EE * EE / ME;
 
   // Faraday rotativities for thermal plasma
-  double Xe = Thetae * sqrt(sqrt(2) * sin(theta) * (1.e3 * omega0 / 2. / M_PI / nu));
+  REAL Xe = Thetae * sqrt(sqrt(2) * sin(theta) * (1.e3 * omega0 / 2. / M_PI / nu));
 
   // Approximate bessel functions to match rhoq,v with grtrans
   *rQ = 2. * M_PI * nu / 2. / CL * wp2 * omega0 * omega0 / pow(2 * M_PI * nu, 4) *
@@ -357,16 +357,16 @@ void piecewise_rho_fit(double Ne, double nu, double Thetae, double B, double the
   }
 }
 
-void old_rho_fit(double Ne, double nu, double Thetae, double B, double theta,
-                    double *rQ, double *rU, double *rV)
+void old_rho_fit(REAL Ne, REAL nu, REAL Thetae, REAL B, REAL theta,
+                    REAL *rQ, REAL *rU, REAL *rV)
 {
-  double Thetaer = 1. / Thetae;
+  REAL Thetaer = 1. / Thetae;
 
-  double omega0 = EE * B / ME / CL;
-  double wp2 = 4. * M_PI * Ne * EE * EE / ME;
+  REAL omega0 = EE * B / ME / CL;
+  REAL wp2 = 4. * M_PI * Ne * EE * EE / ME;
 
   // Faraday rotativities for thermal plasma
-  double Xe = Thetae * sqrt(sqrt(2) * sin(theta) * (1.e3 * omega0 / 2. / M_PI / nu));
+  REAL Xe = Thetae * sqrt(sqrt(2) * sin(theta) * (1.e3 * omega0 / 2. / M_PI / nu));
 
   // Approximate bessel functions to match rhoq,v with grtrans
   *rQ = 2. * M_PI * nu / 2. / CL * wp2 * omega0 * omega0 / pow(2 * M_PI * nu, 4) *
@@ -378,27 +378,27 @@ void old_rho_fit(double Ne, double nu, double Thetae, double B, double theta,
       (besselk_asym(0, Thetaer) - Je(Xe)) / besselk_asym(2, Thetaer) * cos(theta);
 }
 
-double g(double Xe)
+REAL g(REAL Xe)
 {
   return 1. - 0.11 * log(1 + 0.035 * Xe);
 }
 
 
-double h(double Xe)
+REAL h(REAL Xe)
 {
   return 2.011 * exp(-pow(Xe, 1.035) / 4.7) -
     cos(Xe * 0.5) * exp(-pow(Xe, 1.2) / 2.73) -
     0.011 * exp(-Xe / 47.2);
 }
 
-double Je(double Xe)
+REAL Je(REAL Xe)
 {
   return 0.43793091 * log(1. + 0.00185777 * pow(Xe, 1.50316886));
 }
 
-double jffunc(double Xe)
+REAL jffunc(REAL Xe)
 {
-  double extraterm =
+  REAL extraterm =
     (0.011 * exp(-Xe / 47.2) -
      pow(2., -1. / 3.) / pow(3.,
        23. / 6.) * M_PI * 1e4 * pow(Xe + 1e-16,
@@ -410,7 +410,7 @@ double jffunc(double Xe)
     0.011 * exp(-Xe / 47.2) + extraterm;
 }
 
-double I_I(double x)
+REAL I_I(REAL x)
 {
   return 2.5651 * (1 + 1.92 * pow(x, -1. / 3.) +
       0.9977 * pow(x, -2. / 3.)) * exp(-1.8899 * pow(x,
@@ -418,7 +418,7 @@ double I_I(double x)
         3.));
 }
 
-double I_Q(double x)
+REAL I_Q(REAL x)
 {
   return 2.5651 * (1 + 0.93193 * pow(x, -1. / 3.) +
       0.499873 * pow(x, -2. / 3.)) * exp(-1.8899 * pow(x,
@@ -426,7 +426,7 @@ double I_Q(double x)
         3.));
 }
 
-double I_V(double x)
+REAL I_V(REAL x)
 {
   return (1.81348 / x + 3.42319 * pow(x, -2. / 3.) +
       0.0292545 * pow(x, -0.5) + 2.03773 * pow(x,
@@ -434,7 +434,7 @@ double I_V(double x)
     exp(-1.8899 * pow(x, 1. / 3.));
 }
 
-double besselk_asym(int n, double x)
+REAL besselk_asym(int n, REAL x)
 {
 
   if (n == 0)
@@ -455,13 +455,13 @@ double besselk_asym(int n, double x)
 /*
  * get the invariant emissivity and opacity at a given position for a given wavevector
  */
-void get_jkinv(double X[NDIM], double Kcon[NDIM], double *jnuinv, double *knuinv, Params *params)
+void get_jkinv(REAL X[NDIM], REAL Kcon[NDIM], REAL *jnuinv, REAL *knuinv, Params *params)
 {
   if (params->emission_type == E_CUSTOM) {
     get_model_jk(X, Kcon, jnuinv, knuinv);
   } else {
-    double nu, theta, B, Thetae, Ne, Bnuinv;
-    double Ucov[NDIM], Ucon[NDIM], Bcon[NDIM], Bcov[NDIM];
+    REAL nu, theta, B, Thetae, Ne, Bnuinv;
+    REAL Ucov[NDIM], Ucon[NDIM], Bcon[NDIM], Bcov[NDIM];
 
     /* get fluid parameters */
     Ne = get_model_ne(X);	/* check to see if we're outside fluid model */
@@ -498,7 +498,7 @@ void get_jkinv(double X[NDIM], double Kcon[NDIM], double *jnuinv, double *knuinv
 #if DEBUG
     if (isnan(*jnuinv) || isnan(*knuinv)) {
       fprintf(stderr, "\nisnan get_jkinv\n");
-      fprintf(stderr, ">> %g %g %g %g %g %g %g %g\n", *jnuinv, *knuinv,
+      fprintf(stderr, ">> %Lg %Lg %Lg %Lg %Lg %Lg %Lg %Lg\n", *jnuinv, *knuinv,
           Ne, theta, nu, B, Thetae, Bnuinv);
     }
 #endif
@@ -523,9 +523,9 @@ void get_jkinv(double X[NDIM], double Kcon[NDIM], double *jnuinv, double *knuinv
  * Good for Thetae >~ 1
  * See Leung+ 2011, restated Pandya+ 2016
  */
-double jnu_synch(double nu, double Ne, double Thetae, double B, double theta)
+REAL jnu_synch(REAL nu, REAL Ne, REAL Thetae, REAL B, REAL theta)
 {
-  double K2,nuc,nus,x,f,j,sth ;
+  REAL K2,nuc,nus,x,f,j,sth ;
 
   //K2 = gsl_sf_bessel_Kn(2,1./Thetae) ;
   K2 = 2.*Thetae*Thetae ;

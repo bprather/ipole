@@ -5,6 +5,8 @@
  *      Author: bprather
  */
 
+#include "utils.h"
+
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -22,7 +24,26 @@ void *malloc_rank1(int n1, int size)
 }
 
 
-double ***malloc_rank3(int n1, int n2, int n3)
+REAL ***malloc_rank3(int n1, int n2, int n3)
+{
+
+  REAL ***A;
+  REAL *space;
+  int i,j;
+
+  space = malloc_rank1(n1*n2*n3, sizeof(REAL));
+  A = malloc_rank1(n1, sizeof(REAL *));
+  for(i = 0; i < n1; i++){
+    A[i] = malloc_rank1(n2,sizeof(REAL *));
+    for(j = 0; j < n2; j++){
+      A[i][j] = &(space[n3*(j + n2*i)]);
+    }
+  }
+
+  return A;
+}
+
+double ***malloc_rank3_double(int n1, int n2, int n3)
 {
 
   double ***A;
@@ -60,7 +81,29 @@ float ***malloc_rank3_float(int n1, int n2, int n3)
   return A;
 }
 
-double ****malloc_rank4(int n1, int n2, int n3, int n4)
+REAL ****malloc_rank4(int n1, int n2, int n3, int n4)
+{
+
+  REAL ****A;
+  REAL *space;
+  int i,j,k;
+
+  space = malloc_rank1(n1*n2*n3*n4, sizeof(REAL));
+  A = malloc_rank1(n1, sizeof(REAL *));
+  for(i=0;i<n1;i++){
+    A[i] = malloc_rank1(n2,sizeof(REAL *));
+    for(j=0;j<n2;j++){
+      A[i][j] = malloc_rank1(n3,sizeof(REAL *));
+      for(k=0;k<n3;k++){
+        A[i][j][k] = &(space[n4*(k + n3*(j + n2*i))]);
+      }
+    }
+  }
+
+  return A;
+}
+
+double ****malloc_rank4_double(int n1, int n2, int n3, int n4)
 {
 
   double ****A;
@@ -81,6 +124,7 @@ double ****malloc_rank4(int n1, int n2, int n3, int n4)
 
   return A;
 }
+
 
 float ****malloc_rank4_float(int n1, int n2, int n3, int n4)
 {

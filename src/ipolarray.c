@@ -20,25 +20,25 @@
 #include <complex.h>
 
 // Sub-functions
-void push_polar(double Xi[NDIM], double Xm[NDIM], double Xf[NDIM],
-    double Ki[NDIM], double Km[NDIM], double Kf[NDIM],
-    complex double Ni[NDIM][NDIM],
-    complex double Nm[NDIM][NDIM],
-    complex double Nf[NDIM][NDIM], double dlam);
+void push_polar(REAL Xi[NDIM], REAL Xm[NDIM], REAL Xf[NDIM],
+    REAL Ki[NDIM], REAL Km[NDIM], REAL Kf[NDIM],
+    _Complex REAL Ni[NDIM][NDIM],
+    _Complex REAL Nm[NDIM][NDIM],
+    _Complex REAL Nf[NDIM][NDIM], REAL dlam);
 
 /* tensor tools */
-void complex_lower(double complex N[NDIM][NDIM], double gcov[NDIM][NDIM],
-    int low1, int low2, double complex Nl[NDIM][NDIM]);
-void stokes_to_tensor(double fI, double fQ, double fU, double fV,
-    double complex f_tetrad[NDIM][NDIM]);
-void tensor_to_stokes(double complex f_tetrad[NDIM][NDIM], double *fI,
-    double *fQ, double *fU, double *fV);
-void complex_coord_to_tetrad_rank2(double complex T_coord[NDIM][NDIM],
-    double Ecov[NDIM][NDIM],
-    double complex T_tetrad[NDIM][NDIM]);
-void complex_tetrad_to_coord_rank2(double complex T_tetrad[NDIM][NDIM],
-    double Econ[NDIM][NDIM],
-    double complex T_coord[NDIM][NDIM]);
+void complex_lower(_Complex REAL N[NDIM][NDIM], REAL gcov[NDIM][NDIM],
+    int low1, int low2, _Complex REAL Nl[NDIM][NDIM]);
+void stokes_to_tensor(REAL fI, REAL fQ, REAL fU, REAL fV,
+    _Complex REAL f_tetrad[NDIM][NDIM]);
+void tensor_to_stokes(_Complex REAL f_tetrad[NDIM][NDIM], REAL *fI,
+    REAL *fQ, REAL *fU, REAL *fV);
+void complex_coord_to_tetrad_rank2(_Complex REAL T_coord[NDIM][NDIM],
+    REAL Ecov[NDIM][NDIM],
+    _Complex REAL T_tetrad[NDIM][NDIM]);
+void complex_tetrad_to_coord_rank2(_Complex REAL T_tetrad[NDIM][NDIM],
+    REAL Econ[NDIM][NDIM],
+    _Complex REAL T_coord[NDIM][NDIM]);
 
 
 
@@ -51,8 +51,8 @@ void complex_tetrad_to_coord_rank2(double complex T_tetrad[NDIM][NDIM],
  * Returns flag indicating at least one step either used a questionable tetrad, or produced a NaN value
  */
 int integrate_emission(struct of_traj *traj, int nsteps,
-                    double *Intensity, double *Tau, double *tauF,
-                    double complex N_coord[NDIM][NDIM], Params *params)
+                    REAL *Intensity, REAL *Tau, REAL *tauF,
+                    _Complex REAL N_coord[NDIM][NDIM], Params *params)
 {
   //fprintf(stderr, "Begin integrate emission\n");
   // Initialize
@@ -73,7 +73,7 @@ int integrate_emission(struct of_traj *traj, int nsteps,
     // Parallel transport polarization vector if necessary
     //fprintf(stderr, "Push Polar\n");
     if (!params->only_unpolarized) {
-      double complex Nh[NDIM][NDIM];
+      _Complex REAL Nh[NDIM][NDIM];
       push_polar(ti.X, ti.X, ti.Xhalf, ti.Kcon, ti.Kcon, ti.Kconhalf, N_coord, N_coord, Nh, 0.5 * ti.dl);
       push_polar(ti.X, ti.Xhalf, tf.X, ti.Kcon, ti.Kconhalf, tf.Kcon, N_coord, Nh, N_coord, ti.dl);
     }
@@ -89,19 +89,19 @@ int integrate_emission(struct of_traj *traj, int nsteps,
         // We also have to transform into & out of fluid frame
 
         // Make a tetrad
-        double gcov[NDIM][NDIM];
+        REAL gcov[NDIM][NDIM];
         gcov_func(tf.X, gcov);
-        double Ucon[NDIM], Ucov[NDIM], Bcon[NDIM], Bcov[NDIM];
+        REAL Ucon[NDIM], Ucov[NDIM], Bcon[NDIM], Bcov[NDIM];
         get_model_fourv(tf.X, tf.Kcon, Ucon, Ucov, Bcon, Bcov);
-        double Ecov[NDIM][NDIM], Econ[NDIM][NDIM];
+        REAL Ecov[NDIM][NDIM], Econ[NDIM][NDIM];
         sflag |= make_plasma_tetrad(Ucon, tf.Kcon, Bcon, gcov, Econ, Ecov);
 
         // Get the Stokes parameters
-        double SI, SQ, SU, SV;
+        REAL SI, SQ, SU, SV;
         get_model_stokes(tf.X, tf.Kcon, &SI, &SQ, &SU, &SV);
 
         // make N_tetrad, and transform
-        double complex N_tetrad[NDIM][NDIM];
+        _Complex REAL N_tetrad[NDIM][NDIM];
         complex_coord_to_tetrad_rank2(N_coord, Ecov, N_tetrad);
         stokes_to_tensor(SI, SQ, SU, SV, N_tetrad);
         complex_tetrad_to_coord_rank2(N_tetrad, Econ, N_coord);
@@ -111,7 +111,7 @@ int integrate_emission(struct of_traj *traj, int nsteps,
 
     if (radiating_region(tf.X)) {
       // Solve unpolarized transport
-      double ji, ki, jf, kf;
+      REAL ji, ki, jf, kf;
       get_jkinv(ti.X, ti.Kcon, &ji, &ki, params);
       get_jkinv(tf.X, tf.Kcon, &jf, &kf, params);
       *Intensity = approximate_solve(*Intensity, ji, ki, jf, kf, ti.dl, Tau);
@@ -136,21 +136,21 @@ int integrate_emission(struct of_traj *traj, int nsteps,
     if (sflag & 1) {
       fprintf(stderr, "that's odd: no orthonormal tetrad found at\n");
       fprintf(stderr, "nstep: %d\n", nstep);
-      double r, th;
+      REAL r, th;
       bl_coord(tf.X, &r, &th);
-      fprintf(stderr, "X: %g %g %g %g\n", tf.X[0], tf.X[1], tf.X[2], tf.X[3]);
-      fprintf(stderr, "r,th: %g %g\n", r, th);
-      double gcov[NDIM][NDIM];
+      fprintf(stderr, "X: %Lg %Lg %Lg %Lg\n", tf.X[0], tf.X[1], tf.X[2], tf.X[3]);
+      fprintf(stderr, "r,th: %Lg %Lg\n", r, th);
+      REAL gcov[NDIM][NDIM];
       gcov_func(tf.X, gcov);
-      double Ucon[NDIM], Ucov[NDIM], Bcon[NDIM], Bcov[NDIM];
+      REAL Ucon[NDIM], Ucov[NDIM], Bcon[NDIM], Bcov[NDIM];
       get_model_fourv(tf.X, tf.Kcon, Ucon, Ucov, Bcon, Bcov);
       print_vector("Ucon", Ucon);
       print_vector("Kcon", tf.Kcon);
       print_vector("Bcon", Bcon);
 
-      double ucov[4];
+      REAL ucov[4];
       flip_index(Ucon, gcov, ucov);
-      double bsq = 0., udotu = 0., udotb = 0., kdotk = 0., kdotu = 0., kdotb = 0.;
+      REAL bsq = 0., udotu = 0., udotb = 0., kdotk = 0., kdotu = 0., kdotb = 0.;
       MULOOP {
         bsq += Bcon[mu] * Bcov[mu];
         udotu += Ucon[mu] * ucov[mu];
@@ -159,9 +159,9 @@ int integrate_emission(struct of_traj *traj, int nsteps,
         kdotu += tf.Kcon[mu] * ucov[mu];
         kdotb += tf.Kcon[mu] * Bcov[mu];
       }
-      double bsq_reported = get_model_b(tf.X);
+      REAL bsq_reported = get_model_b(tf.X);
       fprintf(stderr, "If all of the following are nonzero, file a bug:\n");
-      fprintf(stderr, "bsq = %g bsq_reported = %g u.u = %g  u.b = %g k.u = %g k.b = %g\n",
+      fprintf(stderr, "bsq = %Lg bsq_reported = %Lg u.u = %Lg  u.b = %Lg k.u = %Lg k.b = %Lg\n",
                       bsq, bsq_reported, udotu, udotb, kdotu, kdotb);
       // exit(-1);
     }
@@ -175,7 +175,7 @@ int integrate_emission(struct of_traj *traj, int nsteps,
 #if DEBUG
     // Cry on bad tauF
     if (sflag & 2) {
-      printf("tauF = %e dlam = %e\n", *tauF, ti.dl);
+      printf("tauF = %Le dlam = %Le\n", *tauF, ti.dl);
       fprintf(stderr, "nstep: %d\n", nstep);
       exit(-1);
     }
@@ -188,10 +188,10 @@ int integrate_emission(struct of_traj *traj, int nsteps,
       print_vector("Xf", tf.X);
       print_vector("Kconi", ti.Kcon);
       print_vector("Kconf", tf.Kcon);
-      //printf("Stokes initial: [%e %e %e %e]\n", SI0, SQ0, SU0, SV0);
-      //printf("Stokes final: [%e %e %e %e] dlam: %e\n", SI, SQ, SU, SV, dlam);
-      //printf("Coefficients: j: [%e %e %e %e] a: [%e %e %e %e] rho: [%e %e %e]\n", jI, jQ, jU, jV, aI, aQ, aU, aV, rQ, rU, rV);
-      //MUNULOOP printf("Econ[%i][%i] = %e Ncoord = %e Ntet = %e\n", mu, nu, Econ[mu][nu], creal(N_coord[mu][nu]), creal(N_tetrad[mu][nu]));
+      //printf("Stokes initial: [%Le %Le %Le %Le]\n", SI0, SQ0, SU0, SV0);
+      //printf("Stokes final: [%Le %Le %Le %Le] dlam: %Le\n", SI, SQ, SU, SV, dlam);
+      //printf("Coefficients: j: [%Le %Le %Le %Le] a: [%Le %Le %Le %Le] rho: [%Le %Le %Le]\n", jI, jQ, jU, jV, aI, aQ, aU, aV, rQ, rU, rV);
+      //MUNULOOP printf("Econ[%i][%i] = %Le Ncoord = %Le Ntet = %Le\n", mu, nu, Econ[mu][nu], creal(N_coord[mu][nu]), creal(N_tetrad[mu][nu]));
       exit(-1);
     }
 #endif
@@ -207,20 +207,20 @@ int integrate_emission(struct of_traj *traj, int nsteps,
 /*
  * parallel transport N over dl
  */
-void push_polar(double Xi[NDIM], double Xm[NDIM], double Xf[NDIM],
-    double Ki[NDIM], double Km[NDIM], double Kf[NDIM],
-    complex double Ni[NDIM][NDIM],
-    complex double Nm[NDIM][NDIM],
-    complex double Nf[NDIM][NDIM], double dlam)
+void push_polar(REAL Xi[NDIM], REAL Xm[NDIM], REAL Xf[NDIM],
+    REAL Ki[NDIM], REAL Km[NDIM], REAL Kf[NDIM],
+    _Complex REAL Ni[NDIM][NDIM],
+    _Complex REAL Nm[NDIM][NDIM],
+    _Complex REAL Nf[NDIM][NDIM], REAL dlam)
 {
 #if INTEGRATOR_TEST
-  double dl = dlam;
+  REAL dl = dlam;
 #else
-  double dl = dlam / (L_unit * HPL / (ME * CL * CL));
+  REAL dl = dlam / (L_unit * HPL / (ME * CL * CL));
 #endif
 
   /* find the connection */
-  double lconn[NDIM][NDIM][NDIM];
+  REAL lconn[NDIM][NDIM][NDIM];
   get_connection(Xm, lconn);
   int i, j, k, l;
 
@@ -247,26 +247,26 @@ void push_polar(double Xi[NDIM], double Xm[NDIM], double Xf[NDIM],
  * 
  * Return an error flag indicating any singular matrix, bad tetrad, etc.
  */
-int evolve_N(double Xi[NDIM], double Kconi[NDIM],
-    double Xhalf[NDIM], double Kconhalf[NDIM],
-    double Xf[NDIM], double Kconf[NDIM],
-    double dlam, double complex N_coord[NDIM][NDIM], double *tauF, Params *params)
+int evolve_N(REAL Xi[NDIM], REAL Kconi[NDIM],
+    REAL Xhalf[NDIM], REAL Kconhalf[NDIM],
+    REAL Xf[NDIM], REAL Kconf[NDIM],
+    REAL dlam, _Complex REAL N_coord[NDIM][NDIM], REAL *tauF, Params *params)
 {
   // TODO might be useful to split this into flat-space S->S portion and transformations to/from N
-  double gcov[NDIM][NDIM];
-  double Ucon[NDIM],Bcon[NDIM];
-  double Ucov[NDIM],Bcov[NDIM];
-  double Ecov[NDIM][NDIM], Econ[NDIM][NDIM];
-  double complex N_tetrad[NDIM][NDIM];
-  double B;
-  double jI, jQ, jU, jV;
-  double aI, aQ, aU, aV;
-  double rV, rU, rQ;
-  double rho2, rho, rdS;
-  double SI = 0, SQ = 0, SU = 0, SV = 0;
-  double SI0, SQ0, SU0, SV0;
-  double SI1, SQ1, SU1, SV1;
-  double SI2, SQ2, SU2, SV2;
+  REAL gcov[NDIM][NDIM];
+  REAL Ucon[NDIM],Bcon[NDIM];
+  REAL Ucov[NDIM],Bcov[NDIM];
+  REAL Ecov[NDIM][NDIM], Econ[NDIM][NDIM];
+  _Complex REAL N_tetrad[NDIM][NDIM];
+  REAL B;
+  REAL jI, jQ, jU, jV;
+  REAL aI, aQ, aU, aV;
+  REAL rV, rU, rQ;
+  REAL rho2, rho, rdS;
+  REAL SI = 0, SQ = 0, SU = 0, SV = 0;
+  REAL SI0, SQ0, SU0, SV0;
+  REAL SI1, SQ1, SU1, SV1;
+  REAL SI2, SQ2, SU2, SV2;
   int oddflag = 0;
 
   // get fluid parameters at Xf
@@ -301,12 +301,12 @@ int evolve_N(double Xi[NDIM], double Kconi[NDIM],
   tensor_to_stokes(N_tetrad, &SI0, &SQ0, &SU0, &SV0);
 
   /* apply the Faraday rotation solution for a half step */
-  double x = dlam * 0.5;
+  REAL x = dlam * 0.5;
 
   rdS = rQ * SQ0 + rU * SU0 + rV * SV0;
   rho2 = rQ * rQ + rU * rU + rV * rV;
   rho = sqrt(rho2);
-  double c, s, sh;
+  REAL c, s, sh;
   c = cos(rho * x);
   s = sin(rho * x);
   sh = sin(0.5 * rho * x);
@@ -325,16 +325,16 @@ int evolve_N(double Xi[NDIM], double Kconi[NDIM],
 
   /* apply full absorption/emission step */
   x = dlam;
-  double aI2 = aI * aI;
-  double aP2 = aQ * aQ + aU * aU + aV * aV;
-  double aP = sqrt(aP2);
-  double ads0 = aQ * SQ1 + aU * SU1 + aV * SV1;
-  double adj = aQ * jQ + aU * jU + aV * jV;
+  REAL aI2 = aI * aI;
+  REAL aP2 = aQ * aQ + aU * aU + aV * aV;
+  REAL aP = sqrt(aP2);
+  REAL ads0 = aQ * SQ1 + aU * SU1 + aV * SV1;
+  REAL adj = aQ * jQ + aU * jU + aV * jV;
 
   if (aP > SMALL) { /* full analytic solution has trouble if polarized absorptivity is small */
-    double expaIx = exp(-aI * x);
-    double sinhaPx = sinh(aP * x);
-    double coshaPx = cosh(aP * x);
+    REAL expaIx = exp(-aI * x);
+    REAL sinhaPx = sinh(aP * x);
+    REAL coshaPx = cosh(aP * x);
 
     SI2 = (SI1 * coshaPx * expaIx
         - (ads0 / aP) * sinhaPx * expaIx
@@ -374,7 +374,7 @@ int evolve_N(double Xi[NDIM], double Kconi[NDIM],
   } else {
     // Still account for aI which may be >> aP, e.g. simulating unpolarized transport
     // Should still make this an expansion in aP as well
-    double tau_fake = 0;
+    REAL tau_fake = 0;
     SI2 = approximate_solve(SI1, jI, aI, jI, aI, x, &tau_fake);
     SQ2 = approximate_solve(SQ1, jQ, aI, jQ, aI, x, &tau_fake);
     SU2 = approximate_solve(SU1, jU, aI, jU, aI, x, &tau_fake);
@@ -411,7 +411,7 @@ int evolve_N(double Xi[NDIM], double Kconi[NDIM],
 
   // Record Stokes parameters iff we're doing an integrator test
 #if INTEGRATOR_TEST
-  static double lam = 0;
+  static REAL lam = 0;
   lam += dlam;
   record_stokes_parameters(SI, SQ, SU, SV, lam);
 #endif
@@ -426,14 +426,14 @@ int evolve_N(double Xi[NDIM], double Kconi[NDIM],
 }
 
 /* converts tensor N to Stokes parameters detected at the camera*/
-void project_N(double X[NDIM], double Kcon[NDIM],
-    double complex N_coord[NDIM][NDIM], double *Stokes_I,
-    double *Stokes_Q, double *Stokes_U, double *Stokes_V,
-    double rotcam)
+void project_N(REAL X[NDIM], REAL Kcon[NDIM],
+    _Complex REAL N_coord[NDIM][NDIM], REAL *Stokes_I,
+    REAL *Stokes_Q, REAL *Stokes_U, REAL *Stokes_V,
+    REAL rotcam)
 {
-  double complex N_tetrad[NDIM][NDIM];
-  double Econ[NDIM][NDIM], Ecov[NDIM][NDIM];
-  double Q,U;
+  _Complex REAL N_tetrad[NDIM][NDIM];
+  REAL Econ[NDIM][NDIM], Ecov[NDIM][NDIM];
+  REAL Q,U;
 
   make_camera_tetrad(X, Econ, Ecov);
 
@@ -455,10 +455,10 @@ void project_N(double X[NDIM], double Kcon[NDIM],
  *
  * return final intensity
  */
-double approximate_solve(double Ii, double ji, double ki, double jf,
-    double kf, double dl, double *tau)
+REAL approximate_solve(REAL Ii, REAL ji, REAL ki, REAL jf,
+    REAL kf, REAL dl, REAL *tau)
 {
-  double efac, If, javg, kavg, dtau;
+  REAL efac, If, javg, kavg, dtau;
 
   javg = (ji + jf) / 2.;
   kavg = (ki + kf) / 2.;
@@ -480,9 +480,9 @@ double approximate_solve(double Ii, double ji, double ki, double jf,
 
 /*************************SUPPORTING FUNCTIONS******************************/
 
-void complex_lower(double complex N[NDIM][NDIM],
-    double gcov[NDIM][NDIM],
-    int low1, int low2, double complex Nl[NDIM][NDIM])
+void complex_lower(_Complex REAL N[NDIM][NDIM],
+    REAL gcov[NDIM][NDIM],
+    int low1, int low2, _Complex REAL Nl[NDIM][NDIM])
 {
   int i, j, k, l;
 
@@ -521,8 +521,8 @@ void complex_lower(double complex N[NDIM][NDIM],
 
 }
 
-void stokes_to_tensor(double fI, double fQ, double fU, double fV,
-    double complex f_tetrad[NDIM][NDIM])
+void stokes_to_tensor(REAL fI, REAL fQ, REAL fU, REAL fV,
+    _Complex REAL f_tetrad[NDIM][NDIM])
 {
   int i, j;
 
@@ -537,8 +537,8 @@ void stokes_to_tensor(double fI, double fQ, double fU, double fV,
 
 }
 
-void tensor_to_stokes(double complex f_tetrad[NDIM][NDIM],
-    double *fI, double *fQ, double *fU, double *fV)
+void tensor_to_stokes(_Complex REAL f_tetrad[NDIM][NDIM],
+    REAL *fI, REAL *fQ, REAL *fU, REAL *fV)
 {
 
   /*here I divide by two to agree with above */
@@ -549,9 +549,9 @@ void tensor_to_stokes(double complex f_tetrad[NDIM][NDIM],
 
 }
 
-void complex_coord_to_tetrad_rank2(double complex T_coord[NDIM][NDIM],
-    double Ecov[NDIM][NDIM],
-    double complex T_tetrad[NDIM][NDIM])
+void complex_coord_to_tetrad_rank2(_Complex REAL T_coord[NDIM][NDIM],
+    REAL Ecov[NDIM][NDIM],
+    _Complex REAL T_tetrad[NDIM][NDIM])
 {
   int i, j, k, l;
 
@@ -569,9 +569,9 @@ void complex_coord_to_tetrad_rank2(double complex T_coord[NDIM][NDIM],
   return;
 }
 
-void complex_tetrad_to_coord_rank2(double complex T_tetrad[NDIM][NDIM],
-    double Econ[NDIM][NDIM],
-    double complex T_coord[NDIM][NDIM])
+void complex_tetrad_to_coord_rank2(_Complex REAL T_tetrad[NDIM][NDIM],
+    REAL Econ[NDIM][NDIM],
+    _Complex REAL T_coord[NDIM][NDIM])
 {
   int i, j, k, l;
 

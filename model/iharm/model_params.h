@@ -1,7 +1,7 @@
 #ifndef MODEL_PARAMS_H
 #define MODEL_PARAMS_H
 
-#define SLOW_LIGHT (0)
+#include "decs.h"
 
 // Model-specific definitions and globals
 #define KRHO 0
@@ -15,8 +15,8 @@
 #define KEL  8
 #define KTOT 9
 
-extern double DTd;
-extern double sigma_cut;
-extern double rmax_geo;
+extern REAL DTd;
+extern REAL sigma_cut;
+extern REAL rmax_geo;
 
 #endif // MODEL_PARAMS_H
