@@ -23,6 +23,16 @@
 
 #include <complex.h>
 
+#define ZERO_N 0
+
+// Define where to switch from 1-exp() to
+// Taylor-expanded quantities in the optical
+// depth
+#define CUT_SMALL_OPTICAL_DEPTH 1e-5
+
+// Smallest double that prevents NaNs on inverses
+#define CUT_PREVENT_NAN 1e-80
+
 // Sub-functions
 void push_polar(double Xi[NDIM], double Xm[NDIM], double Xf[NDIM],
     double Ki[NDIM], double Km[NDIM], double Kf[NDIM],
@@ -335,7 +345,7 @@ int evolve_N(double Xi[NDIM], double Kconi[NDIM],
 
   /* convert N to Stokes */
   MUNULOOP N_preserve[mu][nu] = N_coord[mu][nu];
-  if (verbose) {
+  if (SI0_c2-SI0_c > 1e-50) {
     tensor_to_stokes(N_coord, &SI0_c, &SQ0_c, &SU0_c, &SV0_c);
     fprintf(stderr, "Coord-only pre: %g %g %g %g\n", SI0_c, SQ0_c, SU0_c, SV0_c);
     complex_coord_to_tetrad_rank2(N_coord, Ecov, N_tetrad);
@@ -655,11 +665,11 @@ void complex_lower(double complex N[NDIM][NDIM],
 void stokes_to_tensor(double fI, double fQ, double fU, double fV,
     double complex f_tetrad[NDIM][NDIM])
 {
-  //int i, j;
-  //for (i = 0; i < 4; i++)
-  //for (j = 0; j < 4; j++)
-  //f_tetrad[i][j] = 0. + I * 0.;
-
+#if ZERO_N
+  for (int i = 0; i < 4; i++)
+	  for (int j = 0; j < 4; j++)
+	    f_tetrad[i][j] = 0. + I * 0.;
+#endif
   /*notice that I swapped sign of the imaginary part [2][3] in [3][2] - which one is correct? */
   f_tetrad[1][1] = (fI + fQ + 0. * I);
   f_tetrad[1][2] = (fU - I * fV);

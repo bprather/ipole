@@ -532,6 +532,7 @@ void dump_var_along(int i, int j, int nstep, struct of_traj *traj, int nx, int n
 
   // DEALLOCATE
 
+/*
   // Scalars
   free(b); free(ne); free(thetae);
   free(nu); free(mu);
@@ -553,6 +554,6 @@ void dump_var_along(int i, int j, int nstep, struct of_traj *traj, int nx, int n
   // Tensors
   free(ntetrad); free(ncoord);
   free(econ); free(ecov);
-
+*/
   hdf5_close();
 }
